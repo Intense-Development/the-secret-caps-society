@@ -31,7 +31,7 @@ export async function GET() {
       session: data.session ? { userId: data.session.user.id } : null,
       env: { urlPresent, anonPresent },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
       {
         ok: false,
