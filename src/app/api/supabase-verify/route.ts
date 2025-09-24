@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
+import { NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase/server";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function GET() {
       return NextResponse.json(
         {
           ok: false,
-          message: 'Supabase reachable but auth call returned an error',
+          message: "Supabase reachable but auth call returned an error",
           error: { name: error.name, message: error.message },
           env: { urlPresent, anonPresent },
         },
@@ -27,16 +27,21 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      message: 'Supabase connectivity OK',
+      message: "Supabase connectivity OK",
       session: data.session ? { userId: data.session.user.id } : null,
       env: { urlPresent, anonPresent },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error =
+      err instanceof Error
+        ? { name: err.name, message: err.message }
+        : { name: "Unknown error", message: String(err) };
+
     return NextResponse.json(
       {
         ok: false,
-        message: 'Supabase connectivity failed',
-        error: { name: err?.name ?? 'Error', message: err?.message ?? String(err) },
+        message: "Supabase connectivity failed",
+        error,
         env: {
           urlPresent: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
           anonPresent: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
