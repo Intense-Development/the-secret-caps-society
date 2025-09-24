@@ -1,81 +1,164 @@
-# Project Prompts Log
+> Detalla en esta sección los prompts principales utilizados durante la creación del proyecto, que justifiquen el uso de asistentes de código en todas las fases del ciclo de vida del desarrollo. Esperamos un máximo de 3 por sección, principalmente los de creación inicial o los de corrección o adición de funcionalidades que consideres más relevantes.
+> Puedes añadir adicionalmente la conversación completa como link o archivo adjunto si así lo consideras.
 
-Timestamp: 2025-09-21T12:40:05-06:00
+## Índice
 
-## Conversation Transcript
-
-- USER: as the best fullstack developer help me to prepare a boilerplate for a new project
-
-  In the frontend we'll use Next.js, include Shadcdn for the components and include TDD configurations, all the frontend should be compabitble with all the browsers and have the best mobile responsive
-
-  In the backend and database we'll use Supabase, include the configuration need to connect and best practices for this and include TDD configuration
-
-  In the README include all the versions of libraries that are using and step by step to start up the project
-
-  All this development should be in a clean architecture and use the best practices for all
-
-  Add every prompts of our interactions in the file @[/Users/paco/Documents/Intense Development/the-secret-caps-society/prompts.md]
-
-- ASSISTANT: I'll start by planning the tasks for setting up your fullstack boilerplate and then inspect the current workspace (especially `prompts.md` to log our interaction). After that, I'll create the Next.js + Tailwind + shadcn/ui frontend with TDD, set up Supabase integration and testing, and generate a comprehensive README with versions and startup steps.
-
-- ASSISTANT: To append our interaction history into `prompts.md`, I need to open it first to see its current contents and structure. Then I'll propose initialization commands for creating the Next.js + shadcn/ui + Supabase boilerplate, and will wait for your approval to run them.
+1. [Descripción general del producto](#1-descripción-general-del-producto)
+2. [Arquitectura del sistema](#2-arquitectura-del-sistema)
+3. [Modelo de datos](#3-modelo-de-datos)
+4. [Especificación de la API](#4-especificación-de-la-api)
+5. [Historias de usuario](#5-historias-de-usuario)
+6. [Tickets de trabajo](#6-tickets-de-trabajo)
+7. [Pull requests](#7-pull-requests)
 
 ---
 
-Future interactions will be appended chronologically below.
+## 1. Descripción general del producto
 
+**Prompt 1:**  
+“As the best fullstack developer, help me prepare a boilerplate for a new project using Next.js, Shadcn UI, TDD, and Supabase, ensuring best practices and clean architecture.”
 
-Timestamp: 2025-09-21T12:42:11-06:00
+**Prompt 2:**  
+“Include a README with all library versions and step-by-step startup instructions.”
 
-- USER: approve
+**Prompt 3:**  
+“Ensure the frontend is mobile responsive and compatible with all browsers, and the backend follows clean architecture with TDD configuration.”
 
-- ASSISTANT: I’m going to scaffold the Next.js app with TypeScript, Tailwind, ESLint, App Router, and src directory using create-next-app in your workspace. This will install dependencies and create the `web/` project.
+---
 
-Timestamp: 2025-09-21T12:48:40-06:00
+## 2. Arquitectura del Sistema
 
-- USER: continue
+### **2.1. Diagrama de arquitectura:**
 
-- ASSISTANT: I'll initialize shadcn/ui in the new Next.js project, add a practical starter set of components, install runtime and dev/test dependencies (Supabase, Jest/RTL/MSW, Playwright), and install Playwright browsers. These steps will update files and package.json in the `web/` project.
+**Prompt 1:**  
+“Provide a high-level architecture diagram showing components and technologies used (Next.js, Supabase, Tailwind, Stripe/PayPal, PostgreSQL).”
 
-Timestamp: 2025-09-21T12:55:33-06:00
+**Prompt 2:**  
+“Explain why this architecture was chosen, the benefits it brings, and any trade-offs.”
 
-- USER: Continue
+**Prompt 3:**  
+“Include diagram in Markdown-friendly format.”
 
-- ASSISTANT: I’ll proceed to add clean architecture scaffolding, Supabase helpers, testing and E2E configs, an example component and tests, an API health route, and a comprehensive README. Then I’ll append these prompts to this log.
+### **2.2. Descripción de componentes principales:**
 
-Timestamp: 2025-09-21T13:05:14-06:00
+**Prompt 1:**  
+“Describe the main components of the system (frontend, backend, DB, payments) including the technology used.”
 
-- USER: approve
+**Prompt 2:**  
+“Provide details on how Supabase, Stripe, and PayPal are integrated.”
 
-- ASSISTANT: I will flatten the project by moving all content from `web/` to the repository root and delete `web/`. I will also update the root `README.md` with the detailed guide and keep this log updated.
+**Prompt 3:**  
+“Explain testing frameworks, E2E, unit tests, and CI/CD integration.”
 
-Timestamp: 2025-09-21T13:11:51-06:00
+### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
-- USER: start the project
+**Prompt 1:**  
+“Show the project folder structure with purpose of main directories.”
 
-- ASSISTANT: Installing dependencies at the repository root and starting the Next.js dev server.
+**Prompt 2:**  
+“Explain how clean architecture principles are applied in the folder organization.”
 
-Timestamp: 2025-09-21T13:24:59-06:00
+**Prompt 3:**  
+“Provide a brief description of entry points and main modules.”
 
-- USER: Help me to set my Supabase config/keys in the project
+### **2.4. Infraestructura y despliegue**
 
-- ASSISTANT: I added `.env.example` at the repo root and updated `.gitignore` to allow committing it. I will guide you to set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`, and optionally add server-only keys.
+**Prompt 1:**  
+“Explain the deployment setup using Vercel and Supabase.”
 
-Timestamp: 2025-09-21T13:24:59-06:00
+**Prompt 2:**  
+“Provide a diagram of infrastructure components.”
 
-- USER: Help me to set my Supabase config/keys in the project
+**Prompt 3:**  
+“Describe CI/CD pipelines and deployment process.”
 
-- ASSISTANT: Providing step-by-step guidance to obtain keys from Supabase Dashboard, populate `.env.local`, and verify integration using the existing Supabase clients.
+### **2.5. Seguridad**
 
-Timestamp: 2025-09-21T13:28:16-06:00
+**Prompt 1:**  
+“Enumerate the main security practices implemented (e.g., JWT, environment variables).”
 
-- USER: Yep, be sure that we can connect to Supabase if is need create a Supabase endpoint for that
+**Prompt 2:**  
+“Explain server-side keys usage and Supabase security rules.”
 
-- ASSISTANT: Created `/api/supabase-verify` endpoint to validate connectivity and environment variables using `supabase.auth.getSession()`. Returns a JSON payload with `ok`, `message`, optional `session`, and `env` flags.
+**Prompt 3:**  
+“Include examples of secure endpoints and authentication.”
 
-Timestamp: 2025-09-21T13:45:46-06:00
+### **2.6. Tests**
 
-- USER: no, create a code-rules file where explain all the rules needed fot the projects like "develop in a clean architecture", "always develop a new feature, should create the needed test",  "always use the latest version of the libraris" and all the best practices that you recommend
+**Prompt 1:**  
+“Describe unit tests for functions and components using Jest.”
 
-- ASSISTANT: Created `CODE_RULES.md` with engineering standards covering clean architecture, TDD, dependencies policy, CI quality gates, code style, Next.js specifics, UI practices, Supabase security, git workflow, documentation, and a PR checklist. Linked it from `README.md`.
+**Prompt 2:**  
+“Describe integration tests for API endpoints with Supabase.”
 
+**Prompt 3:**  
+“Describe E2E tests using Playwright for full user flows.”
+
+---
+
+### 3. Modelo de Datos
+
+**Prompt 1:**  
+“Generate a Mermaid ER diagram including PKs, FKs, and all entity relationships (Users, Stores, Products, Orders, Order_Items, Payments).”
+
+**Prompt 2:**  
+“Explain the entity relationships and purpose of each table.”
+
+**Prompt 3:**  
+“Provide details on attributes, types, constraints, and relationships for documentation.”
+
+---
+
+### 4. Especificación de la API
+
+**Prompt 1:**  
+“Document 3 main REST endpoints in OpenAPI format: GET /products, POST /orders, POST /payments.”
+
+**Prompt 2:**  
+“Include request and response examples.”
+
+**Prompt 3:**  
+“Explain authentication, error handling, and best practices for REST design.”
+
+---
+
+### 5. Historias de Usuario
+
+**Prompt 1:**  
+“Document a user story for registration and login for buyers.”
+
+**Prompt 2:**  
+“Document a user story for product creation and management by sellers.”
+
+**Prompt 3:**  
+“Document a user story for order creation, checkout, and payment confirmation.”
+
+---
+
+### 6. Tickets de Trabajo
+
+**Prompt 1:**  
+“Create a backend ticket for implementing POST /orders endpoint with validation and tests.”
+
+**Prompt 2:**  
+“Create a frontend ticket for Cart component with quantity updates and checkout flow.”
+
+**Prompt 3:**  
+“Create a database ticket for creating PRODUCTS, ORDERS, ORDER_ITEMS tables with constraints and indices.”
+
+---
+
+### 7. Pull Requests
+
+**Prompt 1:**  
+“PR documenting implementation of backend orders endpoint with tests.”
+
+**Prompt 2:**  
+“PR documenting frontend Cart component with tests and checkout integration.”
+
+**Prompt 3:**  
+“PR documenting database migrations for products, orders, and order_items with referential integrity.”
+
+---
+
+> **Nota:** La conversación completa se encuentra en el archivo original [`prompts.md`](./prompts.md) y se puede consultar para referencia detallada.
