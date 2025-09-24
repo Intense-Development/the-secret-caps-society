@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -37,12 +38,14 @@ export default function AuthCallbackPage() {
   }, [searchParams]);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Auth Callback</h1>
-      <p role="status" className="text-sm text-muted-foreground">
-        {message}
-      </p>
-      <Button onClick={() => window.location.assign("/")}>Go home</Button>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="max-w-2xl mx-auto p-6 space-y-4">
+        <h1 className="text-xl font-semibold">Auth Callback</h1>
+        <p role="status" className="text-sm text-muted-foreground">
+          {message}
+        </p>
+        <Button onClick={() => window.location.assign("/")}>Go home</Button>
+      </div>
+    </Suspense>
   );
 }
