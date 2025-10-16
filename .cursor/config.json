@@ -1,0 +1,74 @@
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://context7.mcp.com",
+      "enabled": true
+    },
+    "sequentialthinking": {
+      "url": "https://sequentialthinking.mcp.com",
+      "enabled": true
+    },
+    "playwright": {
+      "url": "https://playwright.mcp.com",
+      "enabled": true
+    }
+  },
+  "permissions": {
+    "allow": [
+      "bash:mkdir",
+      "bash:uv",
+      "bash:find",
+      "bash:mv",
+      "bash:grep",
+      "bash:npm",
+      "bash:ls",
+      "bash:cp",
+      "write",
+      "edit",
+      "bash:touch",
+      "bash:pip install",
+      "bash:uvicorn",
+      "bash:git worktree",
+      "bash:npx tsc",
+      "mcp.playwright.browser.navigate",
+      "mcp.playwright.browser.type",
+      "mcp.playwright.browser.click",
+      "mcp.playwright.browser.wait_for",
+      "mcp.playwright.browser.take_screenshot",
+      "mcp.playwright.browser.resize",
+      "mcp.playwright.browser.console_messages",
+      "mcp.shadcn.get_items",
+      "mcp.playwright.browser.close",
+      "mcp.shadcn_components.list_components",
+      "mcp.shadcn_components.get_component_metadata",
+      "mcp.shadcn_components.get_component_demo",
+      "mcp.shadcn_components.list_blocks",
+      "mcp.shadcn_components.get_block",
+      "mcp.playwright.browser.tab_new"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "onStop": [
+      {
+        "type": "command",
+        "command": "say 'All done'",
+        "timeout": 120
+      }
+    ],
+    "onSubagentStop": [
+      {
+        "type": "command",
+        "command": "say 'Subagent finished'",
+        "timeout": 120
+      }
+    ],
+    "onNotification": [
+      {
+        "type": "command",
+        "command": ".cursor/hooks/on-notification-say.sh",
+        "timeout": 60
+      }
+    ]
+  }
+}
