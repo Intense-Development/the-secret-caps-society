@@ -1,7 +1,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 const VerificationForm = () => {
   return (
@@ -47,12 +47,15 @@ const VerificationForm = () => {
         <Label htmlFor="terms" className="text-sm font-normal">
           I certify that all information provided is accurate and that I sell
           authentic products. I agree to the{" "}
-          <Link to="/terms" className="text-primary underline hover:opacity-80">
+          <Link
+            href="/terms"
+            className="text-primary underline hover:opacity-80"
+          >
             Seller Terms
           </Link>{" "}
           and{" "}
           <Link
-            to="/privacy"
+            href="/privacy"
             className="text-primary underline hover:opacity-80"
           >
             Privacy Policy
