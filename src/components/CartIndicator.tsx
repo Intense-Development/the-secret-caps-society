@@ -1,3 +1,4 @@
+"use client";
 
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 const CartIndicator = () => {
   const { cart } = useCart();
-  
+
   return (
     <Link href="/cart">
       <Button variant="ghost" size="icon" className="relative">

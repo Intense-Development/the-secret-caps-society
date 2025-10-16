@@ -1,11 +1,18 @@
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { CartItem, Cart } from "@/core/types";
 import { toast } from "@/hooks/use-toast";
 
 interface CartContextProps {
   cart: Cart;
-  addToCart: (item: Omit<CartItem, 'id'>) => void;
+  addToCart: (item: Omit<CartItem, "id">) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -15,7 +22,7 @@ interface CartContextProps {
 const initialCartState: Cart = {
   items: [],
   totalItems: 0,
-  totalPrice: 0
+  totalPrice: 0,
 };
 
 const CartContext = createContext<CartContextProps | undefined>(undefined);
@@ -25,47 +32,52 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Load cart from localStorage on component mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
+    const savedCart = localStorage.getItem("cart");
     if (savedCart) {
       try {
         setCart(JSON.parse(savedCart));
       } catch (error) {
-        console.error('Failed to parse cart from localStorage:', error);
-        localStorage.removeItem('cart');
+        console.error("Failed to parse cart from localStorage:", error);
+        localStorage.removeItem("cart");
       }
     }
   }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
   // Calculate totals whenever cart items change
   const calculateTotals = (items: CartItem[]): Cart => {
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
+    const totalPrice = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
     return {
       items,
       totalItems,
-      totalPrice
+      totalPrice,
     };
   };
 
   // Generate a unique identifier for cart items based on productId, size, and color
-  const getItemUniqueKey = (item: Omit<CartItem, 'id'>) => {
-    return `${item.productId}-${item.size || 'no-size'}-${item.color || 'no-color'}`;
+  const getItemUniqueKey = (item: Omit<CartItem, "id">) => {
+    return `${item.productId}-${item.size || "no-size"}-${
+      item.color || "no-color"
+    }`;
   };
 
   // Add item to cart
-  const addToCart = (item: Omit<CartItem, 'id'>) => {
-    setCart(prevCart => {
+  const addToCart = (item: Omit<CartItem, "id">) => {
+    setCart((prevCart) => {
       const itemUniqueKey = getItemUniqueKey(item);
-      
+
       // Find if an item with same productId, size and color exists
-      const existingItemIndex = prevCart.items.findIndex(cartItem => 
-        getItemUniqueKey(cartItem) === itemUniqueKey
+      const existingItemIndex = prevCart.items.findIndex(
+        (cartItem) => getItemUniqueKey(cartItem) === itemUniqueKey
       );
 
       let updatedItems;
@@ -75,7 +87,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updatedItems = [...prevCart.items];
         updatedItems[existingItemIndex] = {
           ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + item.quantity
+          quantity: updatedItems[existingItemIndex].quantity + item.quantity,
         };
         toast({
           title: "Quantity updated",
@@ -85,7 +97,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // Add new item with a unique ID
         const newItem: CartItem = {
           ...item,
-          id: `cart-${itemUniqueKey}-${Date.now()}`
+          id: `cart-${itemUniqueKey}-${Date.now()}`,
         };
         updatedItems = [...prevCart.items, newItem];
         toast({
@@ -100,14 +112,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Remove item from cart
   const removeFromCart = (productId: string) => {
-    setCart(prevCart => {
-      const updatedItems = prevCart.items.filter(item => item.id !== productId);
-      
+    setCart((prevCart) => {
+      const updatedItems = prevCart.items.filter(
+        (item) => item.id !== productId
+      );
+
       toast({
         title: "Removed from cart",
         description: "Item removed from your cart",
       });
-      
+
       return calculateTotals(updatedItems);
     });
   };
@@ -119,11 +133,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    setCart(prevCart => {
-      const updatedItems = prevCart.items.map(item => 
+    setCart((prevCart) => {
+      const updatedItems = prevCart.items.map((item) =>
         item.id === productId ? { ...item, quantity } : item
       );
-      
+
       return calculateTotals(updatedItems);
     });
   };
@@ -138,29 +152,36 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Check if product is in cart with the same size and color
-  const isInCart = (productId: string, size?: string, color?: string): boolean => {
+  const isInCart = (
+    productId: string,
+    size?: string,
+    color?: string
+  ): boolean => {
     if (!size && !color) {
       // If no size or color is provided, use the old behavior
-      return cart.items.some(item => item.productId === productId);
+      return cart.items.some((item) => item.productId === productId);
     }
-    
+
     // Check for a specific combination of product, size, and color
-    return cart.items.some(item => 
-      item.productId === productId && 
-      item.size === size && 
-      (color ? item.color === color : true)
+    return cart.items.some(
+      (item) =>
+        item.productId === productId &&
+        item.size === size &&
+        (color ? item.color === color : true)
     );
   };
 
   return (
-    <CartContext.Provider value={{
-      cart,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      isInCart
-    }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        isInCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

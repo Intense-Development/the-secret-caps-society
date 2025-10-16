@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +27,7 @@ import StepIndicator from "@/components/store-registration/StepIndicator";
 
 const Register = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [accountType, setAccountType] = useState<"buyer" | "seller" | null>(
     null
@@ -55,7 +58,7 @@ const Register = () => {
           title: "Account created successfully",
           description: "Welcome to the Secret Caps Society!",
         });
-        navigate("/");
+        router.push("/");
       }
     }, 1500);
   };
@@ -71,7 +74,7 @@ const Register = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/dashboard/stores");
+    router.push("/dashboard/stores");
   };
 
   const renderStepContent = () => {

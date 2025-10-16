@@ -1,3 +1,4 @@
+"use client";
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
@@ -11,7 +12,10 @@ import ProductsFilters from "@/components/products/ProductsFilters";
 import ProductsSort from "@/components/products/ProductsSort";
 import ProductsGrid from "@/components/products/ProductsGrid";
 import MobileFilterBar from "@/components/products/MobileFilterBar";
-import { PRODUCTS, getRelatedProducts } from "@/components/products/ProductsData";
+import {
+  PRODUCTS,
+  getRelatedProducts,
+} from "@/components/products/ProductsData";
 
 const Products = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -24,15 +28,15 @@ const Products = () => {
   const toggleFilters = () => {
     setIsFilterOpen(!isFilterOpen);
   };
-  
+
   // Function to handle viewing a product's details
   const handleViewProduct = (product: Product) => {
     setSelectedProduct(product);
   };
-  
+
   // Function to handle selecting a related product
   const handleViewRelatedProduct = (productId: string) => {
-    const product = PRODUCTS.find(p => p.id === productId);
+    const product = PRODUCTS.find((p) => p.id === productId);
     if (product) {
       setSelectedProduct(product);
     }
@@ -47,20 +51,22 @@ const Products = () => {
   // Apply filters whenever search query or other filters change
   useEffect(() => {
     let filtered = PRODUCTS;
-    
+
     // Filter by search query
     if (searchQuery.trim() !== "") {
-      filtered = filtered.filter(product => 
-        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.storeName.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (product) =>
+          product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.storeName.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     // Filter by price range
-    filtered = filtered.filter(product => 
-      product.price >= priceRange[0] && product.price <= priceRange[1]
+    filtered = filtered.filter(
+      (product) =>
+        product.price >= priceRange[0] && product.price <= priceRange[1]
     );
-    
+
     // Apply sorting
     switch (sortOption) {
       case "price-low":
@@ -76,7 +82,7 @@ const Products = () => {
       default:
         break;
     }
-    
+
     console.log(`Found ${filtered.length} products after filtering`);
     setFilteredProducts(filtered);
   }, [searchQuery, priceRange, sortOption]);
@@ -84,11 +90,11 @@ const Products = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-grow pt-20 md:pt-24">
         {/* Hero section with search */}
         <ProductsHero onSearchChange={setSearchQuery} />
-        
+
         {/* Products grid with filters */}
         <section className="py-8 md:py-12">
           <div className="container mx-auto px-4 sm:px-6">
@@ -101,14 +107,14 @@ const Products = () => {
                 toggleFilters={toggleFilters}
                 onApplyFilters={applyFilters}
               />
-              
+
               {/* Mobile Filters Button and Sort */}
               <MobileFilterBar
                 toggleFilters={toggleFilters}
                 sortOption={sortOption}
                 setSortOption={setSortOption}
               />
-              
+
               {/* Products Content Area */}
               <div className="flex-1">
                 {/* Sort options - Desktop */}
@@ -118,7 +124,7 @@ const Products = () => {
                   productsCount={filteredProducts.length}
                   isDesktop={true}
                 />
-                
+
                 {/* Products grid with filtered products */}
                 <ProductsGrid
                   products={filteredProducts}
@@ -129,7 +135,7 @@ const Products = () => {
           </div>
         </section>
       </main>
-      
+
       {/* Product Detail Dialog */}
       <ProductDetailDialog
         product={selectedProduct}
@@ -137,7 +143,7 @@ const Products = () => {
         onClose={() => setSelectedProduct(null)}
         onViewRelatedProduct={handleViewRelatedProduct}
       />
-      
+
       <Footer />
     </div>
   );

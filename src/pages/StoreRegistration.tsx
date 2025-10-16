@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -21,7 +24,7 @@ import SuccessModal from "@/components/store-registration/SuccessModal";
 
 const StoreRegistration = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -52,7 +55,7 @@ const StoreRegistration = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/dashboard/stores");
+    router.push("/dashboard/stores");
   };
 
   const renderStepContent = () => {

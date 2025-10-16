@@ -1,6 +1,13 @@
+"use client";
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { Product } from "@/core/types";
@@ -16,18 +23,18 @@ interface ProductDetailDialogProps {
   onViewRelatedProduct: (productId: string) => void;
 }
 
-const ProductDetailDialog = ({ 
-  product, 
-  relatedProducts, 
-  onClose, 
-  onViewRelatedProduct 
+const ProductDetailDialog = ({
+  product,
+  relatedProducts,
+  onClose,
+  onViewRelatedProduct,
 }: ProductDetailDialogProps) => {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const { addToCart, isInCart } = useCart();
-  
+
   if (!product) return null;
-  
+
   const handleAddToCart = () => {
     addToCart({
       productId: product.id,
@@ -37,29 +44,33 @@ const ProductDetailDialog = ({
       storeName: product.storeName,
       quantity: 1,
       size: selectedSize || undefined,
-      color: selectedColor || undefined
+      color: selectedColor || undefined,
     });
   };
-  
+
   // Check if product with this specific size and color is already in cart
-  const alreadyInCart = isInCart(product.id, selectedSize || undefined, selectedColor || undefined);
-  
+  const alreadyInCart = isInCart(
+    product.id,
+    selectedSize || undefined,
+    selectedColor || undefined
+  );
+
   // Updated to require selectedSize (size is mandatory)
   const canAddToCart = !product.isSoldOut && selectedSize && !alreadyInCart;
-  
+
   return (
     <Dialog open={!!product} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-xl">{product.title}</DialogTitle>
         </DialogHeader>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto">
           {/* Product Image */}
           <ProductImageSection product={product} />
-          
+
           {/* Product Details */}
-          <ProductDetailsSection 
+          <ProductDetailsSection
             product={product}
             selectedSize={selectedSize}
             setSelectedSize={setSelectedSize}
@@ -70,9 +81,9 @@ const ProductDetailDialog = ({
             canAddToCart={canAddToCart}
           />
         </div>
-        
+
         {/* Related Products Section */}
-        <RelatedProductsSection 
+        <RelatedProductsSection
           relatedProducts={relatedProducts}
           onViewRelatedProduct={onViewRelatedProduct}
         />
