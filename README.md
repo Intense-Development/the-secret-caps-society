@@ -140,28 +140,74 @@ Para la plataforma y modelo de negocio
 
 ### **1.4. Instrucciones de instalación:**
 
-1. Install dependencies
+#### Requisitos Previos
+
+- Node.js 20.17+ (recomendado)
+- npm (gestor de paquetes)
+- Git
+- Cuenta de Supabase (para configuración de base de datos)
+
+#### Pasos de Instalación
+
+1. **Clonar el repositorio**
+
+```bash
+git clone https://github.com/Intense-Development/the-secret-caps-society.git
+cd the-secret-caps-society
+```
+
+2. **Instalar dependencias**
 
 ```bash
 npm install
 ```
 
-2. Configure environment variables
+3. **Configurar variables de entorno**
 
-- Create a `.env.local` in the project root with:
+Crear un archivo `.env.local` en la raíz del proyecto:
 
-```
+```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-3. Run the dev server
+4. **Ejecutar servidor de desarrollo**
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000
+Abrir http://localhost:3000 en el navegador.
+
+**Opción alternativa con Vercel Dev:**
+
+```bash
+vercel dev
+```
+
+Esto permite probar funcionalidades específicas de Vercel localmente.
+
+#### Stack Tecnológico Actual
+
+- **Framework:** Next.js 15.5.3 con App Router
+- **React:** 19.1.0
+- **TypeScript:** 5.9.3
+- **Estilos:** Tailwind CSS 3.4.11
+- **UI Components:** Radix UI (28 componentes) + shadcn/ui
+- **State Management:** React Query + React Context
+- **Backend:** Supabase (Auth + Database)
+- **Deployment:** Vercel
+
+#### Scripts Disponibles
+
+```bash
+npm run dev          # Servidor de desarrollo
+npm run build        # Build de producción
+npm start            # Servidor de producción
+npm test             # Ejecutar tests con Jest
+npm run lint         # Ejecutar ESLint
+npm run typecheck    # Verificar tipos TypeScript
+```
 
 ## Testing (TDD)
 
@@ -861,3 +907,139 @@ A continuación se documentan tres Pull Requests (PRs) representativas realizada
 - **Autor:** Francisco Figueroa
 - **Fecha:** 2025-09-26
 - **Revisión:** Aprobada por 2 revisores de base de datos, merge a `main`.
+
+---
+
+## 8. Actualización y Configuración para Vercel (Octubre 2025)
+
+### **8.1. Migración Técnica Completa**
+
+**Fecha:** 16 de Octubre, 2025
+
+El proyecto fue completamente migrado de una configuración mixta Vite/React Router a una implementación pura de Next.js 15 con React 19, optimizada para deployment en Vercel.
+
+#### **Trabajo Realizado:**
+
+**1. Limpieza de Estructura del Proyecto**
+- ✅ Eliminación completa del directorio `src/pages/` (estructura React Router)
+- ✅ Eliminación de archivos de Vite: `App.tsx`, `main.tsx`, `index.html`, `vite.config.ts`
+- ✅ Configuración exclusiva de Next.js App Router en `src/app/`
+- ✅ Eliminación de configuraciones TypeScript de Vite
+
+**2. Actualización de Dependencias**
+- ✅ React 18 → React 19.1.0 (requerido para Next.js 15)
+- ✅ Next.js actualizado a 15.5.3
+- ✅ Instalación de 28 componentes de Radix UI
+- ✅ Eliminación de 7 paquetes incompatibles con React 19:
+  - `react-day-picker` (reemplazado con input HTML5)
+  - `vaul`, `cmdk`, `recharts`, `embla-carousel-react`
+  - `input-otp`, `react-resizable-panels`
+
+**3. Correcciones de Código**
+- ✅ Adición de directiva `"use client"` a 20+ componentes
+- ✅ Migración completa de React Router a Next.js navigation:
+  - `useNavigate()` → `useRouter()` from `next/navigation`
+  - `Link` from `react-router-dom` → `Link` from `next/link`
+- ✅ Corrección de 11 errores críticos de ESLint
+- ✅ Implementación de Suspense boundaries para `useSearchParams()`
+- ✅ Corrección de React Hooks violations
+
+**4. Configuración de Deployment**
+- ✅ Creación de `vercel.json` con configuración explícita
+- ✅ Actualización de `tsconfig.json` para Next.js
+- ✅ Configuración de PostCSS y ESLint para Next.js
+- ✅ Corrección de orden de imports CSS (CSS spec compliance)
+- ✅ Configuración de providers en `layout.tsx`:
+  - ThemeProvider
+  - QueryClientProvider (React Query)
+  - CartProvider
+  - TooltipProvider
+
+### **8.2. Componentes de UI Agregados**
+
+Se instalaron y configuraron 28 componentes de Radix UI compatibles con React 19:
+
+- Accordion, Alert Dialog, Aspect Ratio, Avatar
+- Checkbox, Collapsible, Context Menu, Dialog
+- Dropdown Menu, Hover Card, Label, Menubar
+- Navigation Menu, Popover, Progress, Radio Group
+- Scroll Area, Select, Separator, Slider, Slot
+- Switch, Tabs, Toast, Toggle, Toggle Group, Tooltip
+
+### **8.3. Archivos de Documentación Creados**
+
+1. **vercel.json** - Configuración de deployment en Vercel
+2. **REACT_19_COMPATIBILITY.md** - Guía de compatibilidad de dependencias
+3. **ESLINT_FIXES.md** - Registro de correcciones de ESLint
+4. **.cursor/AGENTS_UPDATED.md** - Actualización de agentes AI de Cursor
+
+### **8.4. Issues y Pull Requests**
+
+**Issue #3:** Add missing shadcn/ui components and utility dependencies
+- Estado: ✅ Cerrado
+- PR #4: Implementación completa con todos los checks en verde
+- Worktree workflow utilizado para desarrollo
+
+**Issue #5:** CSS @import statement incorrectly placed
+- Estado: ✅ Resuelto
+- Corrección: Movido `@import` antes de directivas `@tailwind`
+
+### **8.5. Estado Actual del Proyecto**
+
+✅ **Configuración Técnica:**
+- Next.js 15.5.3 con App Router
+- React 19.1.0
+- TypeScript 5.9.3 (strict mode)
+- Tailwind CSS 3.4.11
+- 28 componentes de Radix UI instalados
+
+✅ **Calidad de Código:**
+- 0 errores críticos de build
+- 0 conflictos de dependencias
+- 0 referencias a React Router
+- Arquitectura limpia de Next.js
+- Solo warnings informativos de optimización de imágenes
+
+✅ **Deployment:**
+- Configurado para Vercel
+- Build exitoso
+- CI/CD checks pasando
+- Listo para producción
+
+✅ **Herramientas de Desarrollo:**
+- GitHub CLI configurado
+- Cursor AI agents actualizados para Next.js 15
+- Workflow de worktree implementado
+- Documentación completa
+
+### **8.6. Comandos de Deployment**
+
+Para desplegar a producción en Vercel:
+
+```bash
+# Build local para verificar
+npm run build
+
+# Deploy a Vercel
+vercel --prod
+```
+
+Para desarrollo con características de Vercel:
+
+```bash
+vercel dev
+```
+
+### **8.7. Estadísticas de la Migración**
+
+- **Archivos Eliminados:** 18+ (Vite, React Router, componentes incompatibles)
+- **Archivos Creados:** 10+ (configuraciones, documentación, providers)
+- **Archivos Modificados:** 30+ (directivas client, navegación, tipos)
+- **Dependencias Agregadas:** 28 componentes Radix UI + utilities
+- **Dependencias Eliminadas:** 7 paquetes incompatibles con React 19
+- **Errores Corregidos:** 11 errores críticos de ESLint
+- **Componentes con "use client":** 20+ componentes actualizados
+
+---
+
+> **Nota Importante:** El proyecto fue completamente migrado a Next.js 15 App Router con React 19 el 16 de octubre de 2025. Toda la documentación de este proceso está en `prompts.md` sección 8 y 9, y en los archivos de documentación técnica creados.
