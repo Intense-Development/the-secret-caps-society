@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from "react";
@@ -28,7 +27,9 @@ export default function NotFound() {
         <h1 className="text-4xl font-bold mb-2">404</h1>
         <h2 className="text-2xl font-semibold mb-3">Page Not Found</h2>
         <p className="text-gray-600 mb-6">
-          The page you're looking for at <span className="font-medium text-primary">{pathname}</span> doesn't exist or has been moved.
+          The page you&apos;re looking for at{" "}
+          <span className="font-medium text-primary">{pathname}</span>{" "}
+          doesn&apos;t exist or has been moved.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/">
