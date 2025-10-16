@@ -8,7 +8,7 @@ import { Heart, Check, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/core/types";
 
-interface ProductCardProps extends Product {}
+type ProductCardProps = Product;
 
 export const ProductCard = ({
   id,

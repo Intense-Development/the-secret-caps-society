@@ -4,13 +4,7 @@ import FeaturedProducts from "@/components/FeaturedProducts";
 import Footer from "@/components/Footer";
 import AnimatedSection from "@/components/AnimatedSection";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  ShoppingBag,
-  Store,
-  Shield,
-  CreditCard,
-} from "lucide-react";
+import { ArrowRight, ShoppingBag, Store, CreditCard } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {

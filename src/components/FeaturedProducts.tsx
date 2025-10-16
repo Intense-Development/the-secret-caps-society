@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import ProductCard from "./ProductCard";
 import AnimatedSection from "./AnimatedSection";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Product } from "@/core/types";
 import { getFeaturedProducts } from "@/application/products/getFeaturedProducts";
 import { useQuery } from "@tanstack/react-query";
 

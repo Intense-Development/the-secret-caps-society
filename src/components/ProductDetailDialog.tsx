@@ -6,10 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
 import { Product } from "@/core/types";
 import { useCart } from "@/context/CartContext";
 import ProductImageSection from "./product-detail/ProductImageSection";
@@ -29,7 +26,6 @@ const ProductDetailDialog = ({
   onClose,
   onViewRelatedProduct,
 }: ProductDetailDialogProps) => {
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const { addToCart, isInCart } = useCart();
 
@@ -44,16 +40,11 @@ const ProductDetailDialog = ({
       storeName: product.storeName,
       quantity: 1,
       size: selectedSize || undefined,
-      color: selectedColor || undefined,
     });
   };
 
-  // Check if product with this specific size and color is already in cart
-  const alreadyInCart = isInCart(
-    product.id,
-    selectedSize || undefined,
-    selectedColor || undefined
-  );
+  // Check if product with this specific size is already in cart
+  const alreadyInCart = isInCart(product.id, selectedSize || undefined);
 
   // Updated to require selectedSize (size is mandatory)
   const canAddToCart = !product.isSoldOut && selectedSize && !alreadyInCart;
@@ -74,8 +65,6 @@ const ProductDetailDialog = ({
             product={product}
             selectedSize={selectedSize}
             setSelectedSize={setSelectedSize}
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
             handleAddToCart={handleAddToCart}
             alreadyInCart={alreadyInCart}
             canAddToCart={canAddToCart}

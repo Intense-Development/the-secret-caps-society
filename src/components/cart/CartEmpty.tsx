@@ -1,4 +1,3 @@
-
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -14,12 +13,10 @@ const CartEmpty = () => {
             </div>
             <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
             <p className="text-muted-foreground mb-8">
-              Looks like you haven't added any items to your cart yet.
+              Looks like you haven&apos;t added any items to your cart yet.
             </p>
             <Link href="/products">
-              <Button size="lg">
-                Continue Shopping
-              </Button>
+              <Button size="lg">Continue Shopping</Button>
             </Link>
           </div>
         </div>

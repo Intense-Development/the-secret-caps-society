@@ -1,10 +1,9 @@
-
-import { Store } from '@/core/types';
-import { BaseRepository } from '@/domain/core/repositories/baseRepository';
-import db from '@/infrastructure/database/postgresql';
+import { Store } from "@/core/types";
+import { BaseRepository } from "@/domain/core/repositories/baseRepository";
+import db from "@/infrastructure/database/postgresql";
 
 export class PostgresStoreRepository implements BaseRepository<Store> {
-  private table = 'stores';
+  private table = "stores";
 
   async findAll(): Promise<Store[]> {
     const result = await db.query(`SELECT * FROM ${this.table}`);
@@ -12,11 +11,13 @@ export class PostgresStoreRepository implements BaseRepository<Store> {
   }
 
   async findById(id: number): Promise<Store | null> {
-    const result = await db.query(`SELECT * FROM ${this.table} WHERE id = $1`, [id]);
-    return result.rows.length ? result.rows[0] as Store : null;
+    const result = await db.query(`SELECT * FROM ${this.table} WHERE id = $1`, [
+      id,
+    ]);
+    return result.rows.length ? (result.rows[0] as Store) : null;
   }
 
-  async create(store: Omit<Store, 'id'>): Promise<Store> {
+  async create(store: Omit<Store, "id">): Promise<Store> {
     const { name, owner, products, verified, location, photo } = store;
     const result = await db.query(
       `INSERT INTO ${this.table} (name, owner, products, verified, location, photo) 
@@ -29,11 +30,11 @@ export class PostgresStoreRepository implements BaseRepository<Store> {
   async update(id: number, store: Partial<Store>): Promise<Store | null> {
     // Build SET part of query dynamically based on provided fields
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
     let paramCount = 1;
 
     Object.entries(store).forEach(([key, value]) => {
-      if (key !== 'id') {
+      if (key !== "id") {
         updates.push(`${key} = $${paramCount}`);
         values.push(value);
         paramCount++;
@@ -44,14 +45,19 @@ export class PostgresStoreRepository implements BaseRepository<Store> {
 
     values.push(id);
     const result = await db.query(
-      `UPDATE ${this.table} SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      `UPDATE ${this.table} SET ${updates.join(
+        ", "
+      )} WHERE id = $${paramCount} RETURNING *`,
       values
     );
-    return result.rows.length ? result.rows[0] as Store : null;
+    return result.rows.length ? (result.rows[0] as Store) : null;
   }
 
   async delete(id: number): Promise<boolean> {
-    const result = await db.query(`DELETE FROM ${this.table} WHERE id = $1 RETURNING id`, [id]);
+    const result = await db.query(
+      `DELETE FROM ${this.table} WHERE id = $1 RETURNING id`,
+      [id]
+    );
     return result.rows.length > 0;
   }
 

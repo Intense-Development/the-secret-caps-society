@@ -333,7 +333,7 @@ export default function Register() {
               <p className="text-sm text-muted-foreground">
                 1. Our team will review your store details
                 <br />
-                2. You'll receive an email notification when verified
+                2. You&apos;ll receive an email notification when verified
                 <br />
                 3. Once approved, you can start adding products
               </p>

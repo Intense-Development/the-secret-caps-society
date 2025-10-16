@@ -8,7 +8,7 @@ import { Check, X, Store as StoreIcon, MapPin } from "lucide-react";
 import { Store } from "@/core/types";
 import Link from "next/link";
 
-interface StoreCardProps extends Store {}
+type StoreCardProps = Store;
 
 const StoreCard = ({
   id,
