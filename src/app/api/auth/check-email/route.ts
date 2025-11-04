@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkEmailAvailability } from "@/lib/services/authService";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isAvailable = await checkEmailAvailability(email);
+    const supabase = await createClient();
+    
+    // Check if email exists in users table
+    const { data } = await supabase
+      .from("users")
+      .select("email")
+      .eq("email", email)
+      .single();
+
+    const isAvailable = !data; // Available if not found
 
     return NextResponse.json({
       success: true,

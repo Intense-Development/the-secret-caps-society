@@ -31,21 +31,38 @@ This guide will help you set up and configure the new registration flow for The 
    - **Project URL** (e.g., `https://xxxxx.supabase.co`)
    - **anon public** key
 
-### Step 3: Set Up Environment Variables
+### Step 3: Set Up Environment Variables ⚠️ CRITICAL
 
-Create `.env.local` in your project root:
+**This step is REQUIRED - the app will not work without it!**
+
+1. Copy the example file:
+   ```bash
+   cp env.example .env.local
+   ```
+
+2. Edit `.env.local` with your actual values:
 
 ```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# Supabase Configuration (REQUIRED)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 
-# Database Configuration (for direct PostgreSQL access if needed)
-DATABASE_URL=postgresql://postgres:password@db.xxxxx.supabase.co:5432/postgres
+# Database Configuration (Optional - for direct PostgreSQL access)
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.your-project-id.supabase.co:5432/postgres
 
 # App Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+3. **Restart your development server** after creating `.env.local`:
+   ```bash
+   # Stop the server (Ctrl+C) then:
+   npm run dev
+   ```
+
+**Without these environment variables, you will see:**
+- ❌ "Your project's URL and API key are required to create a Supabase client!"
+- ❌ Registration will fail with 500 errors
 
 ---
 
