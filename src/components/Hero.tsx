@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import AnimatedSection from "./AnimatedSection";
 import { ArrowRight } from "lucide-react";
 
@@ -125,10 +126,13 @@ export const Hero = () => {
             <div className="relative w-full max-w-3xl mx-auto">
               {/* Product image */}
               <div className="rounded-xl overflow-hidden shadow-xl neo-blur bg-white/30 border border-black/5">
-                <img
+                <Image
                   src="/uploads/8200568e-2c5b-4d28-be98-fc09e3034176.png"
                   alt="The Secret Caps Society"
+                  width={1200}
+                  height={800}
                   className="w-full h-auto object-cover"
+                  priority
                 />
               </div>
 
