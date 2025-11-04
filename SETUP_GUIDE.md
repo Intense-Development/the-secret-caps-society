@@ -84,6 +84,27 @@ psql $DATABASE_URL
 \i src/infrastructure/database/migrations/002_complete_schema.sql
 ```
 
+### Option C: Verify with Diagnostics (Recommended)
+
+After running the migration, verify everything is set up correctly:
+
+1. In Supabase **SQL Editor**, run the diagnostics script:
+   ```
+   src/infrastructure/database/diagnostics.sql
+   ```
+
+2. Check the output for any ❌ marks
+3. All checks should show ✅
+
+**Expected output:**
+```
+✅ users table exists
+✅ stores table exists
+✅ RLS ENABLED for all tables
+✅ Users table allows anonymous INSERT
+✅ ALL CHECKS PASSED - Registration should work!
+```
+
 ---
 
 ## 3. Supabase Storage Setup

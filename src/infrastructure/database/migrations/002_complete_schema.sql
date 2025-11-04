@@ -212,3 +212,262 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
+-- =====================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- =====================================================
+-- These policies control who can read/write data in each table
+-- CRITICAL: Without these, registration will fail with DATABASE_ERROR
+
+-- Enable RLS on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+-- =====================================================
+-- USERS TABLE POLICIES
+-- =====================================================
+
+-- Allow anonymous users to create accounts during registration
+CREATE POLICY "Allow user registration"
+ON users
+FOR INSERT
+TO anon
+WITH CHECK (true);
+
+-- Allow authenticated users to read their own data
+CREATE POLICY "Users can read own data"
+ON users
+FOR SELECT
+TO authenticated
+USING (auth.uid() = id);
+
+-- Allow authenticated users to update their own data
+CREATE POLICY "Users can update own data"
+ON users
+FOR UPDATE
+TO authenticated
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
+
+-- Allow service role full access (for admin operations)
+CREATE POLICY "Service role has full access to users"
+ON users
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- =====================================================
+-- STORES TABLE POLICIES
+-- =====================================================
+
+-- Allow anonymous users to create stores during seller registration
+CREATE POLICY "Allow store creation during registration"
+ON stores
+FOR INSERT
+TO anon
+WITH CHECK (true);
+
+-- Allow public to read verified stores
+CREATE POLICY "Public can read verified stores"
+ON stores
+FOR SELECT
+TO anon, authenticated
+USING (verification_status = 'verified');
+
+-- Allow store owners to read their own stores (any status)
+CREATE POLICY "Owners can read own stores"
+ON stores
+FOR SELECT
+TO authenticated
+USING (owner_id = auth.uid());
+
+-- Allow store owners to update their own stores
+CREATE POLICY "Owners can update own stores"
+ON stores
+FOR UPDATE
+TO authenticated
+USING (owner_id = auth.uid())
+WITH CHECK (owner_id = auth.uid());
+
+-- Allow service role full access (for admin verification)
+CREATE POLICY "Service role has full access to stores"
+ON stores
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- =====================================================
+-- PRODUCTS TABLE POLICIES
+-- =====================================================
+
+-- Allow public to read products from verified stores
+CREATE POLICY "Public can read products from verified stores"
+ON products
+FOR SELECT
+TO anon, authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM stores 
+    WHERE stores.id = products.store_id 
+    AND stores.verification_status = 'verified'
+  )
+);
+
+-- Allow store owners to manage their products
+CREATE POLICY "Store owners can insert products"
+ON products
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM stores 
+    WHERE stores.id = products.store_id 
+    AND stores.owner_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Store owners can update own products"
+ON products
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM stores 
+    WHERE stores.id = products.store_id 
+    AND stores.owner_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM stores 
+    WHERE stores.id = products.store_id 
+    AND stores.owner_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Store owners can delete own products"
+ON products
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM stores 
+    WHERE stores.id = products.store_id 
+    AND stores.owner_id = auth.uid()
+  )
+);
+
+-- Allow service role full access
+CREATE POLICY "Service role has full access to products"
+ON products
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- =====================================================
+-- ORDERS TABLE POLICIES
+-- =====================================================
+
+-- Allow authenticated users to create orders
+CREATE POLICY "Authenticated users can create orders"
+ON orders
+FOR INSERT
+TO authenticated
+WITH CHECK (buyer_id = auth.uid());
+
+-- Allow users to read their own orders
+CREATE POLICY "Users can read own orders"
+ON orders
+FOR SELECT
+TO authenticated
+USING (buyer_id = auth.uid());
+
+-- Allow users to update their own pending orders
+CREATE POLICY "Users can update own pending orders"
+ON orders
+FOR UPDATE
+TO authenticated
+USING (buyer_id = auth.uid() AND status = 'pending')
+WITH CHECK (buyer_id = auth.uid());
+
+-- Allow service role full access
+CREATE POLICY "Service role has full access to orders"
+ON orders
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- =====================================================
+-- ORDER_ITEMS TABLE POLICIES
+-- =====================================================
+
+-- Allow users to read items from their orders
+CREATE POLICY "Users can read own order items"
+ON order_items
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM orders 
+    WHERE orders.id = order_items.order_id 
+    AND orders.buyer_id = auth.uid()
+  )
+);
+
+-- Allow users to insert items to their orders
+CREATE POLICY "Users can add items to own orders"
+ON order_items
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM orders 
+    WHERE orders.id = order_items.order_id 
+    AND orders.buyer_id = auth.uid()
+  )
+);
+
+-- Allow service role full access
+CREATE POLICY "Service role has full access to order_items"
+ON order_items
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- =====================================================
+-- PAYMENTS TABLE POLICIES
+-- =====================================================
+
+-- Allow users to read payments for their orders
+CREATE POLICY "Users can read own payments"
+ON payments
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM orders 
+    WHERE orders.id = payments.order_id 
+    AND orders.buyer_id = auth.uid()
+  )
+);
+
+-- Payment creation handled by service role only (for security)
+CREATE POLICY "Service role has full access to payments"
+ON payments
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- =====================================================
+-- END OF RLS POLICIES
+-- =====================================================
+
