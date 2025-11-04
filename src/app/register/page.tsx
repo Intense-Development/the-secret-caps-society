@@ -3,9 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -16,7 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, User, Store } from "lucide-react";
+import { ArrowLeft, User, Store, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -28,47 +31,154 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { BadgeCheck } from "lucide-react";
-import StoreInfoForm from "@/components/store-registration/StoreInfoForm";
-import LocationAndDetailsForm from "@/components/store-registration/LocationAndDetailsForm";
-import VerificationForm from "@/components/store-registration/VerificationForm";
-import StepIndicator from "@/components/store-registration/StepIndicator";
+import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
+import FileUpload from "@/components/auth/FileUpload";
+import {
+  buyerRegistrationSchema,
+  sellerAccountSchema,
+  storeInfoSchema,
+  locationDetailsSchema,
+  verificationSchema,
+  type BuyerRegistrationInput,
+  type SellerAccountInput,
+  type StoreInfoInput,
+  type LocationDetailsInput,
+  type VerificationInput,
+} from "@/lib/validations/auth";
 
 export default function Register() {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [accountType, setAccountType] = useState<"buyer" | "seller" | null>(
-    null
-  );
+  const [accountType, setAccountType] = useState<"buyer" | "seller" | null>(null);
   const [step, setStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Form data storage for multi-step seller registration
+  const [sellerData, setSellerData] = useState<{
+    account?: SellerAccountInput;
+    store?: StoreInfoInput;
+    location?: LocationDetailsInput;
+    verification?: VerificationInput;
+  }>({});
+
   const totalSteps = accountType === "seller" ? 4 : 1;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Buyer registration form
+  const buyerForm = useForm<BuyerRegistrationInput>({
+    resolver: zodResolver(buyerRegistrationSchema),
+    mode: "onChange",
+  });
 
-    if (accountType === "seller" && step < totalSteps) {
-      setStep(step + 1);
-      window.scrollTo(0, 0);
-      return;
-    }
+  // Seller step forms
+  const sellerAccountForm = useForm<SellerAccountInput>({
+    resolver: zodResolver(sellerAccountSchema),
+    mode: "onChange",
+  });
 
+  const storeInfoForm = useForm<StoreInfoInput>({
+    resolver: zodResolver(storeInfoSchema),
+    mode: "onChange",
+  });
+
+  const locationForm = useForm<LocationDetailsInput>({
+    resolver: zodResolver(locationDetailsSchema),
+    mode: "onChange",
+  });
+
+  const verificationForm = useForm<VerificationInput>({
+    resolver: zodResolver(verificationSchema),
+    mode: "onChange",
+  });
+
+  const handleBuyerSubmit = async (data: BuyerRegistrationInput) => {
     setIsLoading(true);
 
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false);
-      if (accountType === "seller") {
-        setShowSuccessModal(true);
-      } else {
+    try {
+      const response = await fetch("/api/auth/register/buyer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
         toast({
-          title: "Account created successfully",
-          description: "Welcome to the Secret Caps Society!",
+          title: "Account created successfully!",
+          description: result.message,
         });
         router.push("/");
+      } else {
+        toast({
+          title: "Registration failed",
+          description: result.message,
+          variant: "destructive",
+        });
       }
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSellerStepSubmit = async (stepData: any) => {
+    if (step === 1) {
+      setSellerData({ ...sellerData, account: stepData });
+      setStep(2);
+      window.scrollTo(0, 0);
+    } else if (step === 2) {
+      setSellerData({ ...sellerData, store: stepData });
+      setStep(3);
+      window.scrollTo(0, 0);
+    } else if (step === 3) {
+      setSellerData({ ...sellerData, location: stepData });
+      setStep(4);
+      window.scrollTo(0, 0);
+    } else if (step === 4) {
+      // Final submission
+      setIsLoading(true);
+      const finalData = {
+        ...sellerData.account,
+        ...sellerData.store,
+        ...sellerData.location,
+        ...stepData,
+        agreeToTerms: true,
+      };
+
+      try {
+        const response = await fetch("/api/auth/register/seller", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalData),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+        setShowSuccessModal(true);
+      } else {
+          toast({
+            title: "Registration failed",
+            description: result.message,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   const goBack = () => {
@@ -76,26 +186,22 @@ export default function Register() {
       setStep(step - 1);
     } else {
       setAccountType(null);
+      setSellerData({});
     }
     window.scrollTo(0, 0);
   };
 
   const handleViewStores = () => {
-    router.push("/dashboard/stores");
+    router.push("/stores");
   };
 
   const handleAddProduct = () => {
-    router.push("/dashboard/products/new");
+    router.push("/");
   };
 
-  const renderStepContent = () => {
-    // If account type not selected yet, show the selection
-    if (!accountType) {
-      return (
+  const renderAccountTypeSelection = () => (
         <div className="space-y-4">
-          <h3 className="text-base font-medium text-center mb-4">
-            Choose account type
-          </h3>
+      <h3 className="text-base font-medium text-center mb-4">Choose account type</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <div
               className="border rounded-lg p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
@@ -114,24 +220,26 @@ export default function Register() {
             >
               <Store className="mx-auto h-10 w-10 mb-4 text-primary" />
               <h3 className="font-medium text-lg mb-2">Seller</h3>
-              <p className="text-sm text-muted-foreground">
-                Create a store and sell caps
-              </p>
+          <p className="text-sm text-muted-foreground">Create a store and sell caps</p>
             </div>
           </div>
         </div>
       );
-    }
 
-    // For seller account, show step-based forms
-    if (accountType === "seller") {
-      switch (step) {
-        case 1:
-          return (
-            <>
+  const renderBuyerForm = () => (
+    <form onSubmit={buyerForm.handleSubmit(handleBuyerSubmit)} className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="John Doe" required />
+        <Input
+          id="name"
+          placeholder="John Doe"
+          {...buyerForm.register("name")}
+        />
+        {buyerForm.formState.errors.name && (
+          <p className="text-xs text-red-500">
+            {buyerForm.formState.errors.name.message}
+          </p>
+        )}
               </div>
 
               <div className="grid gap-2">
@@ -140,61 +248,373 @@ export default function Register() {
                   id="email"
                   type="email"
                   placeholder="your@email.com"
-                  required
+          {...buyerForm.register("email")}
                 />
+        {buyerForm.formState.errors.email && (
+          <p className="text-xs text-red-500">
+            {buyerForm.formState.errors.email.message}
+          </p>
+        )}
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+        <Input
+          id="password"
+          type="password"
+          {...buyerForm.register("password")}
+        />
+        {buyerForm.formState.errors.password && (
+          <p className="text-xs text-red-500">
+            {buyerForm.formState.errors.password.message}
+          </p>
+        )}
+        <PasswordStrengthIndicator password={buyerForm.watch("password") || ""} />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" required />
-              </div>
-            </>
-          );
-        case 2:
-          return <StoreInfoForm />;
-        case 3:
-          return <LocationAndDetailsForm />;
-        case 4:
-          return <VerificationForm />;
-        default:
-          return null;
-      }
-    }
+        <Input
+          id="confirm-password"
+          type="password"
+          {...buyerForm.register("confirmPassword")}
+        />
+        {buyerForm.formState.errors.confirmPassword && (
+          <p className="text-xs text-red-500">
+            {buyerForm.formState.errors.confirmPassword.message}
+          </p>
+        )}
+      </div>
 
-    // For buyer account, show standard registration form
-    return (
-      <>
+      <div className="flex items-center space-x-2 mt-4">
+        <Checkbox
+          id="terms"
+          onCheckedChange={(checked) =>
+            buyerForm.setValue("agreeToTerms", checked as boolean)
+          }
+        />
+        <Label htmlFor="terms" className="text-sm font-normal">
+          I agree to the{" "}
+          <Link href="/terms" className="text-primary underline hover:opacity-80">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-primary underline hover:opacity-80">
+            Privacy Policy
+          </Link>
+        </Label>
+              </div>
+      {buyerForm.formState.errors.agreeToTerms && (
+        <p className="text-xs text-red-500">
+          {buyerForm.formState.errors.agreeToTerms.message}
+        </p>
+      )}
+
+      <div className="flex justify-between mt-6">
+        <Button type="button" variant="outline" onClick={goBack}>
+          Back
+        </Button>
+
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account
+            </>
+          ) : (
+            "Create Account"
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+
+  const renderSellerStep1 = () => (
+    <form
+      onSubmit={sellerAccountForm.handleSubmit(handleSellerStepSubmit)}
+      className="space-y-4"
+    >
+      <div className="grid gap-2">
+        <Label htmlFor="seller-name">Full Name</Label>
+        <Input
+          id="seller-name"
+          placeholder="John Doe"
+          {...sellerAccountForm.register("name")}
+        />
+        {sellerAccountForm.formState.errors.name && (
+          <p className="text-xs text-red-500">
+            {sellerAccountForm.formState.errors.name.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="seller-email">Email</Label>
+        <Input
+          id="seller-email"
+          type="email"
+          placeholder="your@email.com"
+          {...sellerAccountForm.register("email")}
+        />
+        {sellerAccountForm.formState.errors.email && (
+          <p className="text-xs text-red-500">
+            {sellerAccountForm.formState.errors.email.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="seller-password">Password</Label>
+        <Input
+          id="seller-password"
+          type="password"
+          {...sellerAccountForm.register("password")}
+        />
+        {sellerAccountForm.formState.errors.password && (
+          <p className="text-xs text-red-500">
+            {sellerAccountForm.formState.errors.password.message}
+          </p>
+        )}
+        <PasswordStrengthIndicator
+          password={sellerAccountForm.watch("password") || ""}
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="seller-confirm-password">Confirm Password</Label>
+        <Input
+          id="seller-confirm-password"
+          type="password"
+          {...sellerAccountForm.register("confirmPassword")}
+        />
+        {sellerAccountForm.formState.errors.confirmPassword && (
+          <p className="text-xs text-red-500">
+            {sellerAccountForm.formState.errors.confirmPassword.message}
+          </p>
+        )}
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <Button type="button" variant="outline" onClick={goBack}>
+          Back
+        </Button>
+        <Button type="submit">Continue</Button>
+      </div>
+    </form>
+  );
+
+  const renderSellerStep2 = () => (
+    <form
+      onSubmit={storeInfoForm.handleSubmit(handleSellerStepSubmit)}
+      className="space-y-4"
+    >
+      <div className="grid gap-2">
+        <Label htmlFor="store-name">Store Name</Label>
+        <Input
+          id="store-name"
+          placeholder="My Awesome Cap Store"
+          {...storeInfoForm.register("storeName")}
+        />
+        {storeInfoForm.formState.errors.storeName && (
+          <p className="text-xs text-red-500">
+            {storeInfoForm.formState.errors.storeName.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="store-description">Store Description</Label>
+        <Textarea
+          id="store-description"
+          rows={3}
+          placeholder="Tell customers about your store..."
+          {...storeInfoForm.register("storeDescription")}
+        />
+        {storeInfoForm.formState.errors.storeDescription && (
+          <p className="text-xs text-red-500">
+            {storeInfoForm.formState.errors.storeDescription.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="store-website">Website (Optional)</Label>
+        <Input
+          id="store-website"
+          type="url"
+          placeholder="https://mystore.com"
+          {...storeInfoForm.register("storeWebsite")}
+        />
+        {storeInfoForm.formState.errors.storeWebsite && (
+          <p className="text-xs text-red-500">
+            {storeInfoForm.formState.errors.storeWebsite.message}
+          </p>
+        )}
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <Button type="button" variant="outline" onClick={goBack}>
+          Back
+        </Button>
+        <Button type="submit">Continue</Button>
+      </div>
+    </form>
+  );
+
+  const renderSellerStep3 = () => (
+    <form
+      onSubmit={locationForm.handleSubmit(handleSellerStepSubmit)}
+      className="space-y-4"
+    >
+      <div className="grid md:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input id="name" placeholder="John Doe" required />
+          <Label htmlFor="business-type">Business Type</Label>
+          <select
+            id="business-type"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            {...locationForm.register("businessType")}
+          >
+            <option value="">Select Business Type</option>
+            <option value="sole-proprietor">Sole Proprietor</option>
+            <option value="llc">LLC</option>
+            <option value="corporation">Corporation</option>
+            <option value="partnership">Partnership</option>
+          </select>
+          {locationForm.formState.errors.businessType && (
+            <p className="text-xs text-red-500">
+              {locationForm.formState.errors.businessType.message}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="tax-id">Tax ID (Optional)</Label>
           <Input
-            id="email"
-            type="email"
-            placeholder="your@email.com"
-            required
+            id="tax-id"
+            placeholder="12-3456789"
+            {...locationForm.register("taxId")}
           />
         </div>
+      </div>
 
+      <div className="grid gap-2">
+        <Label htmlFor="business-address">Business Address</Label>
+        <Input
+          id="business-address"
+          placeholder="123 Main St"
+          {...locationForm.register("businessAddress")}
+        />
+        {locationForm.formState.errors.businessAddress && (
+          <p className="text-xs text-red-500">
+            {locationForm.formState.errors.businessAddress.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" required />
+          <Label htmlFor="city">City</Label>
+          <Input id="city" {...locationForm.register("city")} />
+          {locationForm.formState.errors.city && (
+            <p className="text-xs text-red-500">
+              {locationForm.formState.errors.city.message}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="confirm-password">Confirm Password</Label>
-          <Input id="confirm-password" type="password" required />
+          <Label htmlFor="state">State/Province</Label>
+          <Input id="state" {...locationForm.register("state")} />
+          {locationForm.formState.errors.state && (
+            <p className="text-xs text-red-500">
+              {locationForm.formState.errors.state.message}
+            </p>
+          )}
         </div>
-      </>
-    );
+
+        <div className="grid gap-2">
+          <Label htmlFor="zip">ZIP/Postal Code</Label>
+          <Input id="zip" {...locationForm.register("zip")} />
+          {locationForm.formState.errors.zip && (
+            <p className="text-xs text-red-500">
+              {locationForm.formState.errors.zip.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <Button type="button" variant="outline" onClick={goBack}>
+          Back
+        </Button>
+        <Button type="submit">Continue</Button>
+      </div>
+    </form>
+  );
+
+  const renderSellerStep4 = () => (
+    <form
+      onSubmit={verificationForm.handleSubmit(handleSellerStepSubmit)}
+      className="space-y-4"
+    >
+      <div className="grid gap-2">
+        <Label>Upload Business License or ID</Label>
+        <FileUpload
+          onFileSelect={(file) => {
+            verificationForm.setValue("documentFile", file || undefined);
+          }}
+          onUploadComplete={(url) => {
+            verificationForm.setValue("documentUrl", url);
+          }}
+          error={
+            verificationForm.formState.errors.documentFile?.message ||
+            verificationForm.formState.errors.documentUrl?.message
+          }
+        />
+      </div>
+
+      <div className="flex items-center space-x-2 mt-4">
+        <Checkbox id="seller-terms" required />
+        <Label htmlFor="seller-terms" className="text-sm font-normal">
+          I agree to the{" "}
+          <Link href="/terms" className="text-primary underline hover:opacity-80">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-primary underline hover:opacity-80">
+            Privacy Policy
+          </Link>
+        </Label>
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <Button type="button" variant="outline" onClick={goBack}>
+          Back
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account
+            </>
+          ) : (
+            "Create Account"
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+
+  const renderStepContent = () => {
+    if (!accountType) return renderAccountTypeSelection();
+
+    if (accountType === "buyer") return renderBuyerForm();
+
+    // Seller multi-step form
+    if (step === 1) return renderSellerStep1();
+    if (step === 2) return renderSellerStep2();
+    if (step === 3) return renderSellerStep3();
+    if (step === 4) return renderSellerStep4();
   };
 
   return (
@@ -224,75 +644,26 @@ export default function Register() {
                   : "Join the Secret Caps Society community today."}
               </CardDescription>
 
-              {accountType && accountType === "seller" && step > 1 && (
-                <StepIndicator
-                  currentStep={step - 1}
-                  totalSteps={totalSteps - 1}
-                />
-              )}
+              {accountType === "seller" && (
+                <div className="pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-muted-foreground">
+                      Step {step} of {totalSteps}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {Math.round((step / totalSteps) * 100)}% Complete
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${(step / totalSteps) * 100}%` }}
+                    />
+                  </div>
+                  </div>
+                )}
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {renderStepContent()}
-
-                {accountType && (
-                  <div className="flex items-center space-x-2 mt-4">
-                    <Checkbox id="terms" required />
-                    <Label htmlFor="terms" className="text-sm font-normal">
-                      I agree to the{" "}
-                      <Link
-                        href="/terms"
-                        className="text-primary underline hover:opacity-80"
-                      >
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        href="/privacy"
-                        className="text-primary underline hover:opacity-80"
-                      >
-                        Privacy Policy
-                      </Link>
-                    </Label>
-                  </div>
-                )}
-
-                {accountType && (
-                  <div className="flex justify-between mt-6">
-                    <Button type="button" variant="outline" onClick={goBack}>
-                      Back
-                    </Button>
-
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <span className="mr-2">Creating account</span>
-                          <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                        </>
-                      ) : accountType === "seller" && step < totalSteps ? (
-                        "Continue"
-                      ) : (
-                        "Create Account"
-                      )}
-                    </Button>
-                  </div>
-                )}
-
-                {!accountType && (
-                  <div className="text-center mt-6 text-sm text-muted-foreground">
-                    <p>
-                      Already have an account?{" "}
-                      <Link
-                        href="/login"
-                        className="text-primary underline hover:opacity-80"
-                      >
-                        Log in
-                      </Link>
-                    </p>
-                  </div>
-                )}
-              </form>
-            </CardContent>
+            <CardContent>{renderStepContent()}</CardContent>
             {accountType && (
               <CardFooter className="flex justify-center">
                 <p className="text-sm text-muted-foreground">
@@ -322,8 +693,8 @@ export default function Register() {
               Store Registration Successful!
             </DialogTitle>
             <DialogDescription className="pt-2 text-center">
-              Your store has been registered and is now pending verification.
-              Our team will review your application and get back to you soon.
+              Your store has been registered and is now pending verification. Our
+              team will review your application and get back to you soon.
             </DialogDescription>
           </DialogHeader>
 
@@ -346,10 +717,10 @@ export default function Register() {
               className="sm:flex-1"
               onClick={handleViewStores}
             >
-              Go to Dashboard
+              Browse Stores
             </Button>
             <Button className="sm:flex-1" onClick={handleAddProduct}>
-              Prepare Products
+              Explore Products
             </Button>
           </DialogFooter>
         </DialogContent>
