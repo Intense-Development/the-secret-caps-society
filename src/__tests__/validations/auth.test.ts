@@ -259,7 +259,8 @@ describe('Auth Validations', () => {
   })
 
   describe('verificationSchema', () => {
-    it('should accept file upload', () => {
+    it('should accept file upload in browser environment', () => {
+      // File API is available in test environment (jsdom)
       const mockFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
       const result = verificationSchema.safeParse({
         documentFile: mockFile,
@@ -274,9 +275,21 @@ describe('Auth Validations', () => {
       expect(result.success).toBe(true)
     })
 
+    it('should accept both file and URL', () => {
+      const mockFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
+      const result = verificationSchema.safeParse({
+        documentFile: mockFile,
+        documentUrl: 'https://example.com/document.pdf',
+      })
+      expect(result.success).toBe(true)
+    })
+
     it('should reject when neither file nor URL is provided', () => {
       const result = verificationSchema.safeParse({})
       expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('upload a verification document')
+      }
     })
   })
 })

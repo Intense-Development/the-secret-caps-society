@@ -59,9 +59,19 @@ export const locationDetailsSchema = z.object({
   zip: z.string().min(3, 'ZIP/Postal code must be at least 3 characters'),
 })
 
+// Custom file validator that works in both SSR and browser environments
+const fileSchema = z.custom<File>((val) => {
+  // Skip validation on server-side (File API not available in Node.js)
+  if (typeof File === 'undefined') return true
+  // Validate on client-side
+  return val instanceof File
+}, {
+  message: 'Invalid file format',
+})
+
 // Seller registration - Step 4: Verification
 export const verificationSchema = z.object({
-  documentFile: z.instanceof(File).optional(),
+  documentFile: fileSchema.optional(),
   documentUrl: z.string().optional(),
 }).refine((data) => data.documentFile || data.documentUrl, {
   message: 'Please upload a verification document',
