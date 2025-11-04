@@ -116,7 +116,7 @@ export default function Register() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -127,17 +127,19 @@ export default function Register() {
     }
   };
 
-  const handleSellerStepSubmit = async (stepData: any) => {
+  const handleSellerStepSubmit = async (
+    stepData: SellerAccountInput | StoreInfoInput | LocationDetailsInput | VerificationInput
+  ) => {
     if (step === 1) {
-      setSellerData({ ...sellerData, account: stepData });
+      setSellerData({ ...sellerData, account: stepData as SellerAccountInput });
       setStep(2);
       window.scrollTo(0, 0);
     } else if (step === 2) {
-      setSellerData({ ...sellerData, store: stepData });
+      setSellerData({ ...sellerData, store: stepData as StoreInfoInput });
       setStep(3);
       window.scrollTo(0, 0);
     } else if (step === 3) {
-      setSellerData({ ...sellerData, location: stepData });
+      setSellerData({ ...sellerData, location: stepData as LocationDetailsInput });
       setStep(4);
       window.scrollTo(0, 0);
     } else if (step === 4) {
@@ -169,7 +171,7 @@ export default function Register() {
             variant: "destructive",
           });
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "An unexpected error occurred",

@@ -50,7 +50,7 @@ export const storeInfoSchema = z.object({
 // Seller registration - Step 3: Location and Details
 export const locationDetailsSchema = z.object({
   businessType: z.enum(['sole-proprietor', 'llc', 'corporation', 'partnership'], {
-    required_error: 'Please select a business type',
+    message: 'Please select a business type',
   }),
   taxId: z.string().optional(),
   businessAddress: z.string().min(5, 'Address must be at least 5 characters'),
