@@ -93,7 +93,7 @@ export const loginSchema = z
   .object({
     email: emailSchema,
     password: z.string().optional(),
-    mode: z.enum(['password', 'magic-link']).default('password'),
+    mode: z.enum(['password', 'magic-link']),
     rememberMe: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
