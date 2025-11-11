@@ -83,9 +83,6 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password: password ?? "",
-      options: {
-        shouldCreateUser: false,
-      },
     });
 
     if (error || !data.session || !data.user) {
@@ -159,4 +156,3 @@ function mapSupabaseError(message: string) {
 
   return message;
 }
-
