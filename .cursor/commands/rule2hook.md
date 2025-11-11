@@ -1,15 +1,15 @@
-# Task: Convert Project Rules to Claude Code Hooks
+# Task: Convert Project Rules to Cursor Code Hooks
 
-You are an expert at converting natural language project rules into Claude Code hook configurations. Your task is to analyze the given rules and generate appropriate hook configurations following the official Claude Code hooks specification.
+You are an expert at converting natural language project rules into Cursor Code hook configurations. Your task is to analyze the given rules and generate appropriate hook configurations following the official Cursor Code hooks specification.
 
 ## Instructions
 
 1. If rules are provided as arguments, analyze those rules
-2. If no arguments are provided, read and analyze the CLAUDE.md file from these locations:
+2. If no arguments are provided, read and analyze the CURSOR.md file from these locations:
 
-   - `./CLAUDE.md` (project memory)
-   - `./CLAUDE.local.md` (local project memory)
-   - `~/.claude/CLAUDE.md` (user memory)
+   - `./CURSOR.md` (project memory)
+   - `./CURSOR.local.md` (local project memory)
+   - `~/.cursor/CURSOR.md` (user memory)
 
 3. For each rule, determine:
 
@@ -20,9 +20,9 @@ You are an expert at converting natural language project rules into Claude Code 
 4. Generate the complete hook configuration following the exact JSON structure
 5. Save it to the appropiate settings file (merge with existing hooks if present)
 
-- `~/.claude/settings.json` (User settings)
-- `.claude/settings.json` (Project settings)
-- `~/.claude/settings.local.json` (Local project settings)
+- `~/.cursor/settings.json` (User settings)
+- `.cursor/settings.json` (Project settings)
+- `~/.cursor/settings.local.json` (Local project settings)
 
 6. Provide a summary of what was configured
 
@@ -56,14 +56,14 @@ You are an expert at converting natural language project rules into Claude Code 
 
 ### Stop
 
-- **When**: Runs when Claude Code finishes responding
+- **When**: Runs when Cursor Code finishes responding
 - **Common Keywords**: "finish", "complete", "end task", "done", "wrap up"
 - **No matcher needed**: Applies to all completions
 - **Common Uses**: Final status checks, summaries, cleanup
 
 ### Notification
 
-- **When**: Runs when Claude Code sends notifications
+- **When**: Runs when Cursor Code sends notifications
 - **Common Keywords**: "notify", "alert", "inform", "message"
 - **Special**: Rarely used for rule conversion
 
@@ -218,7 +218,7 @@ You are an expert at converting natural language project rules into Claude Code 
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[$(date)] Executing bash command\" >> ~/.claude/command.log"
+            "command": "echo \"[$(date)] Executing bash command\" >> ~/.cursor/command.log"
           }
         ]
       }
@@ -229,11 +229,11 @@ You are an expert at converting natural language project rules into Claude Code 
 
 ## Best Practices for Command Generation
 
-1. **Error Handling**: Add `|| true` or `2>/dev/null` to prevent hook failures from blocking Claude
+1. **Error Handling**: Add `|| true` or `2>/dev/null` to prevent hook failures from blocking Cursor
 2. **Quiet Mode**: Use quiet flags (--quiet, -q) when available
 3. **Path Safety**: Use relative paths or check existence
-4. **Performance**: Keep commands fast to avoid slowing down Claude
-5. **Logging**: Redirect verbose output to avoid cluttering Claude's interface
+4. **Performance**: Keep commands fast to avoid slowing down Cursor
+5. **Logging**: Redirect verbose output to avoid cluttering Cursor's interface
 
 ## Common Rule Patterns
 

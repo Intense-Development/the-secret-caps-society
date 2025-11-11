@@ -1,4 +1,4 @@
-# .claude/hooks/on-notification-say.sh
+# .cursor/hooks/on-notification-say.sh
 
 #!/usr/bin/env bash
 set -euo pipefail

@@ -6,7 +6,7 @@ At the end of this message, I will ask you to do something. Please follow the "E
 
 # Create the session file
 
-Create `.claude/sessions/context_session_{feature_name}.md` where plan is going to be updated with all the future iterations and feedback
+Create `.cursor/sessions/context_session_{feature_name}.md` where plan is going to be updated with all the future iterations and feedback
 
 # Explore
 
