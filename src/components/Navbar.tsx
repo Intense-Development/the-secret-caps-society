@@ -1,16 +1,18 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, User } from "lucide-react";
+import { Menu, X, Search, User, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import CartIndicator from "@/components/CartIndicator";
+import { createClient } from "@/lib/supabase/client";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +25,38 @@ export const Navbar = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error("Error checking auth:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Subscribe to auth changes
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -73,12 +107,29 @@ export const Navbar = () => {
               <span className="sr-only">Search</span>
             </Button>
             <CartIndicator />
-            <Link href="/register">
-              <Button variant="default" size="sm" className="h-9">
-                <User className="h-4 w-4 mr-2" />
-                Sign Up
-              </Button>
-            </Link>
+
+            {/* Conditional Auth Button */}
+            {!isLoading &&
+              (isAuthenticated ? (
+                <Link href="/dashboard">
+                  <Button variant="default" size="sm" className="h-9">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="flex items-cente">
+                    Login
+                  </Link>
+                  <Link href="/register">
+                    <Button variant="default" size="sm" className="h-9">
+                      <User className="h-4 w-4 mr-2" />
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              ))}
           </div>
 
           {/* Mobile Menu Button */}
@@ -134,16 +185,32 @@ export const Navbar = () => {
                 <Search className="h-4 w-4" />
               </Button>
               <CartIndicator />
-              <Link href="/register" className="flex-1">
-                <Button
-                  variant="default"
-                  className="w-full"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Sign Up
-                </Button>
-              </Link>
+
+              {/* Conditional Auth Button - Mobile */}
+              {!isLoading &&
+                (isAuthenticated ? (
+                  <Link href="/dashboard" className="flex-1">
+                    <Button
+                      variant="default"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/register" className="flex-1">
+                    <Button
+                      variant="default"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Sign Up
+                    </Button>
+                  </Link>
+                ))}
             </div>
           </div>
         </div>

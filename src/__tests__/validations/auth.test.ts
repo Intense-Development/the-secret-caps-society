@@ -8,6 +8,7 @@ import {
   passwordSchema,
   emailSchema,
   calculatePasswordStrength,
+  loginSchema,
 } from '@/lib/validations/auth'
 
 describe('Auth Validations', () => {
@@ -290,6 +291,34 @@ describe('Auth Validations', () => {
       if (!result.success) {
         expect(result.error.issues[0].message).toContain('upload a verification document')
       }
+    })
+  })
+
+  describe('loginSchema', () => {
+    it('should require password in password mode', () => {
+      const result = loginSchema.safeParse({
+        email: 'user@example.com',
+        password: '',
+        mode: 'password',
+        rememberMe: true,
+      })
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.flatten().fieldErrors.password?.[0]).toContain(
+          'Password is required'
+        )
+      }
+    })
+
+    it('should allow magic-link without password', () => {
+      const result = loginSchema.safeParse({
+        email: 'user@example.com',
+        mode: 'magic-link',
+        rememberMe: false,
+      })
+
+      expect(result.success).toBe(true)
     })
   })
 })

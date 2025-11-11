@@ -89,10 +89,22 @@ export const sellerRegistrationSchema = sellerAccountSchema
   })
 
 // Login schema
-export const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, 'Password is required'),
-})
+export const loginSchema = z
+  .object({
+    email: emailSchema,
+    password: z.string().optional(),
+    mode: z.enum(['password', 'magic-link']).default('password'),
+    rememberMe: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.mode === 'password' && (!data.password || data.password.trim().length === 0)) {
+      ctx.addIssue({
+        path: ['password'],
+        code: z.ZodIssueCode.custom,
+        message: 'Password is required',
+      })
+    }
+  })
 
 // Password strength calculator
 export function calculatePasswordStrength(password: string): {

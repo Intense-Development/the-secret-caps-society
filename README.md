@@ -122,6 +122,11 @@ Para la plataforma y modelo de negocio
 - Métricas de ventas, visitas a productos, tendencias de búsqueda.
 - Información valiosa para mejorar decisiones de stock y pricing.
 
+13. Autenticación moderna y dashboard inteligente
+
+- Login seguro vía Supabase con opción de contraseña o magic link.
+- Dashboard adaptable según rol (buyer / seller / admin) con insights, tareas sugeridas y visualizaciones en tiempo real.
+
 ### **1.3. Diseño y experiencia de usuario:**
 
 ![Homepage](screenshoots/homepage.png)
@@ -194,6 +199,7 @@ Esto permite probar funcionalidades específicas de Vercel localmente.
 - **TypeScript:** 5.9.3
 - **Estilos:** Tailwind CSS 3.4.11
 - **UI Components:** Radix UI (28 componentes) + shadcn/ui
+- **Visualización de datos:** Recharts 2.12 (dashboard inteligente)
 - **State Management:** React Query + React Context
 - **Backend:** Supabase (Auth + Database)
 - **Deployment:** Vercel
@@ -730,6 +736,56 @@ La aplicación se comunica con el backend a través de **API REST** gestionada p
 GET /api/products?store_id=123e4567-e89b-12d3-a456-426614174000&limit=10 HTTP/1.1
 Host: api.the-secret-caps-society.vercel.app/
 ```
+
+---
+
+### **2. POST /auth/login**
+
+- **Descripción:** Inicia sesión a través de Supabase usando contraseña o envía un magic link passwordless.
+- **Método:** POST
+- **Autenticación:** No requiere token previo; devuelve cookies de sesión gestionadas por Supabase.
+- **Body:**
+
+  | Nombre | Tipo | Obligatorio | Descripción |
+  |--------|------|------------|-------------|
+  | email | STRING | Sí | Correo electrónico del usuario |
+  | password | STRING | Condicional | Requerido cuando `mode = "password"` |
+  | mode | ENUM("password", "magic-link") | No (default password) | Tipo de autenticación solicitada |
+  | rememberMe | BOOLEAN | No (default true) | Mantener la sesión persistente durante 14 días |
+
+**Ejemplos de petición:**
+
+```http
+POST /api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "seller@secretcaps.com",
+  "password": "Sup3rSaf3!",
+  "rememberMe": true,
+  "mode": "password"
+}
+```
+
+```http
+POST /api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "buyer@secretcaps.com",
+  "mode": "magic-link"
+}
+```
+
+- **Respuestas:**
+  - `200 OK` → Inicio de sesión exitoso o magic link enviado.
+  - `400 Bad Request` → Errores de validación o credenciales inválidas.
+  - `401 Unauthorized` → Credenciales incorrectas/sesión suspendida.
+  - `500 Internal Server Error` → Fallo inesperado en Supabase o en el servicio.
+
+- **Notas:**
+  - Cuando `rememberMe` es `false`, las cookies se establecen como sesión del navegador.
+  - Email enviado por magic link redirige a `NEXT_PUBLIC_APP_URL` (o `origin`) con estado prellenado.
 
 ---
 

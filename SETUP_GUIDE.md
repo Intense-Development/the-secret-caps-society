@@ -54,6 +54,8 @@ DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.your-project-id.supabase.c
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
+> **Importante:** `NEXT_PUBLIC_APP_URL` se usa para construir el enlace de retorno del magic link. Asegúrate de que coincida con el dominio disponible públicamente (o `http://localhost:3000` en desarrollo) para evitar errores de Supabase.
+
 3. **Restart your development server** after creating `.env.local`:
    ```bash
    # Stop the server (Ctrl+C) then:
@@ -195,6 +197,18 @@ npm run dev
 ```
 
 Visit `http://localhost:3000/register`
+
+### Verify Login + Smart Dashboard
+
+1. Crea un usuario en Supabase (o usa uno existente con rol `buyer`, `seller` o `admin`).
+2. Navega a `http://localhost:3000/login` y:
+   - Inicia sesión con email + contraseña para validar el flujo tradicional.
+   - Marca/desmarca **Remember me** y confirma que la sesión persiste según lo esperado.
+   - Haz clic en **Email me a magic link** para recibir un enlace passwordless (revisa la bandeja de salida de Supabase en modo dev).
+3. Tras iniciar sesión, serás redirigido a `/dashboard`, donde verás paneles adaptados al rol del usuario, gráficas Recharts y recomendaciones personalizadas.
+4. Intenta acceder a `/dashboard` en una ventana privada: deberías ser redirigido a `/login` gracias al middleware de protección.
+
+> Tip: Usa la consola de Supabase → Auth → Users para asignar metadata de `role` o edita la fila en la tabla `users` para probar los escenarios buyer/seller/admin.
 
 ### Test Buyer Registration
 
