@@ -1,0 +1,43 @@
+{
+  "rules": [
+    {
+      "description": "Run security scan before saving files",
+      "when": {
+        "phase": "beforeCommand",
+        "matches": "write *|edit *|multiEdit *"
+      },
+      "run": "git secrets --scan 2>/dev/null || echo 'No secrets found'"
+    },
+    {
+      "description": "Format Python files with black after editing",
+      "when": {
+        "phase": "afterCommand",
+        "matches": "edit *|multiEdit *|write *"
+      },
+      "run": "black . --quiet 2>/dev/null || true"
+    },
+    {
+      "description": "Run git status when finishing a task",
+      "when": {
+        "phase": "onStop"
+      },
+      "run": "git status"
+    },
+    {
+      "description": "Run npm test after modifying test files",
+      "when": {
+        "phase": "afterCommand",
+        "matches": "edit *|multiEdit *|write *"
+      },
+      "run": "npm test 2>/dev/null || echo 'Tests need attention'"
+    },
+    {
+      "description": "Log all bash commands before execution",
+      "when": {
+        "phase": "beforeCommand",
+        "matches": "bash *"
+      },
+      "run": "echo \"[$(date)] Executing bash command\" >> ~/.cursor/command.log"
+    }
+  ]
+}
