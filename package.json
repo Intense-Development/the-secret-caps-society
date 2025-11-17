@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "preview": "next start",
-    "verify:supabase": "tsx scripts/verify-supabase.ts"
+    "verify:supabase": "tsx scripts/verify-supabase.ts",
+    "setup:hooks": "bash scripts/setup-git-hooks.sh"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.6.2",
