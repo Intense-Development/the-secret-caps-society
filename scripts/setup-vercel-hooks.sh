@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup script to install git hooks
+# Setup script to install git hooks for Vercel deployment verification
 # This copies the pre-push hook to .git/hooks/
 #
 
@@ -11,7 +11,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
 PRE_PUSH_HOOK="$HOOKS_DIR/pre-push"
 
-echo "🔧 Setting up git hooks..."
+echo "🔧 Setting up git hooks for Vercel verification..."
 
 # Create hooks directory if it doesn't exist
 mkdir -p "$HOOKS_DIR"
@@ -31,8 +31,8 @@ fi
 cat > "$PRE_PUSH_HOOK" << 'EOF'
 #!/bin/sh
 #
-# Git pre-push hook to verify Supabase configuration before pushing
-# This hook runs the Supabase verification script before allowing a push
+# Git pre-push hook to verify Vercel deployment readiness before pushing
+# This hook runs the Vercel verification script before allowing a push
 #
 
 # Colors for output
@@ -41,23 +41,23 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo "${YELLOW}🔍 Running Supabase deployment verification...${NC}\n"
+echo "${YELLOW}🚀 Running Vercel deployment verification...${NC}\n"
 
 # Run the verification script
-npm run verify:supabase
+npm run verify:vercel
 
 # Capture exit code
 VERIFY_EXIT_CODE=$?
 
 if [ $VERIFY_EXIT_CODE -ne 0 ]; then
-  echo "\n${RED}❌ Supabase verification failed!${NC}"
+  echo "\n${RED}❌ Vercel verification failed!${NC}"
   echo "${RED}Push aborted. Please fix the issues above before pushing.${NC}\n"
   echo "${YELLOW}To bypass this check (not recommended), use:${NC}"
   echo "  ${YELLOW}git push --no-verify${NC}\n"
   exit 1
 fi
 
-echo "\n${GREEN}✅ Supabase verification passed. Proceeding with push...${NC}\n"
+echo "\n${GREEN}✅ Vercel verification passed. Proceeding with push...${NC}\n"
 exit 0
 EOF
 
@@ -67,6 +67,6 @@ chmod +x "$PRE_PUSH_HOOK"
 echo "✅ Git hooks installed successfully!"
 echo "   Pre-push hook: $PRE_PUSH_HOOK"
 echo ""
-echo "The Supabase verification will now run automatically before every git push."
-echo "To test it, run: npm run verify:supabase"
+echo "The Vercel deployment verification will now run automatically before every git push."
+echo "To test it, run: npm run verify:vercel"
 

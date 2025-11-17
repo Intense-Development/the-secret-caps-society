@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "preview": "next start",
-    "verify:supabase": "tsx scripts/verify-supabase.ts",
-    "setup:hooks": "bash scripts/setup-git-hooks.sh"
+    "verify:vercel": "tsx scripts/verify-vercel.ts",
+    "setup:hooks": "bash scripts/setup-vercel-hooks.sh"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.6.2",
@@ -70,7 +70,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
-    "dotenv": "^16.4.5",
     "eslint": "^9.9.0",
     "eslint-config-next": "15.5.3",
     "postcss": "^8.4.47",
