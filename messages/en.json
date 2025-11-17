@@ -1,0 +1,49 @@
+{
+  "nav": {
+    "products": "Products",
+    "stores": "Stores",
+    "about": "About",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "dashboard": "Dashboard",
+    "language": "Change language"
+  },
+  "hero": {
+    "badge": "Exclusive Cap Marketplace",
+    "title": "The Premium Marketplace for Cap Resellers",
+    "description": "Join the exclusive network of authenticated resellers and list your products for free. Connect with cap enthusiasts and grow your business.",
+    "signUp": "Sign Up",
+    "browseProducts": "Browse Products",
+    "trustedBy": "Trusted by {count}+ resellers"
+  },
+  "footer": {
+    "description": "The premium marketplace for cap resellers. Join our community and start selling today.",
+    "quickLinks": "Quick Links",
+    "legal": "Legal",
+    "stayUpdated": "Stay Updated",
+    "newsletterDescription": "Subscribe to our newsletter for the latest drops and exclusive offers.",
+    "emailPlaceholder": "Enter your email",
+    "subscribe": "Subscribe",
+    "copyright": "© {year} Secret Caps Society. All rights reserved.",
+    "designedWith": "Designed and developed with ♥",
+    "products": "Products",
+    "stores": "Stores",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search"
+  }
+}
+
