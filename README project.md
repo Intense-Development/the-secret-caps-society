@@ -122,4 +122,4 @@ Refer to `package.json` for the authoritative list and semver ranges.
 - If you saw an npm/node warning, ensure Node 20.17+ to match npm 11 engine requirements.
 
 ## Engineering Rules
-Please read and follow the engineering standards in `CODE_RULES.md`.
+Please read and follow the engineering standards in `docs/CODE_RULES.md`.

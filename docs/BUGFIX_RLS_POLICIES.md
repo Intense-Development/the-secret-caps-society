@@ -245,8 +245,8 @@ psql < diagnostics.sql
 
 ## Related Documentation
 
-- `002_complete_schema.sql` - Complete migration with RLS
-- `diagnostics.sql` - Database health check
+- `src/infrastructure/database/migrations/002_complete_schema.sql` - Complete migration with RLS
+- `src/infrastructure/database/diagnostics.sql` - Database health check
 - `SETUP_GUIDE.md` - Updated with RLS instructions
 - `BUGFIX_SSR_FILE_VALIDATION.md` - Previous fix #1
 - `BUGFIX_SUPABASE_CLIENT_CONTEXT.md` - Previous fix #2

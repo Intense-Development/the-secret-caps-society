@@ -102,12 +102,12 @@ Tests:
 └── src/__tests__/validations/auth.test.ts
 
 Documentation:
-├── SETUP_GUIDE.md
-├── QA_VALIDATION_REPORT.md
-├── BUGFIX_SSR_FILE_VALIDATION.md
-├── BUGFIX_SUPABASE_CLIENT_CONTEXT.md
-├── BUGFIX_RLS_POLICIES.md
-├── QUICK_FIX.md
+├── docs/SETUP_GUIDE.md
+├── docs/QA_VALIDATION_REPORT.md
+├── docs/BUGFIX_SSR_FILE_VALIDATION.md
+├── docs/BUGFIX_SUPABASE_CLIENT_CONTEXT.md
+├── docs/BUGFIX_RLS_POLICIES.md
+├── docs/QUICK_FIX.md
 └── env.example
 ```
 
@@ -205,18 +205,18 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## 📚 Documentation
 
 ### Setup & Configuration
-- ✅ **SETUP_GUIDE.md** - Complete setup instructions (12 sections)
+- ✅ **docs/SETUP_GUIDE.md** - Complete setup instructions (12 sections)
 - ✅ **env.example** - Environment variables template
 - ✅ **diagnostics.sql** - Database health check (13 checks)
 
 ### Bug Fixes
-- ✅ **BUGFIX_SSR_FILE_VALIDATION.md** - Fix #1 details
-- ✅ **BUGFIX_SUPABASE_CLIENT_CONTEXT.md** - Fix #2 details
-- ✅ **BUGFIX_RLS_POLICIES.md** - Fix #3 details
-- ✅ **QUICK_FIX.md** - Common issues troubleshooting
+- ✅ **docs/BUGFIX_SSR_FILE_VALIDATION.md** - Fix #1 details
+- ✅ **docs/BUGFIX_SUPABASE_CLIENT_CONTEXT.md** - Fix #2 details
+- ✅ **docs/BUGFIX_RLS_POLICIES.md** - Fix #3 details
+- ✅ **docs/QUICK_FIX.md** - Common issues troubleshooting
 
 ### Quality Assurance
-- ✅ **QA_VALIDATION_REPORT.md** - Complete QA report with acceptance criteria
+- ✅ **docs/QA_VALIDATION_REPORT.md** - Complete QA report with acceptance criteria
 
 ---
 
@@ -268,8 +268,8 @@ From User Story #1 - Registration and Access:
 ## 🔗 Related Links
 
 - **Supabase Dashboard:** https://supabase.com/dashboard
-- **Setup Guide:** See `SETUP_GUIDE.md`
-- **QA Report:** See `QA_VALIDATION_REPORT.md`
+- **Setup Guide:** See `docs/SETUP_GUIDE.md` (in this repository)
+- **QA Report:** See `docs/QA_VALIDATION_REPORT.md` (in this repository)
 - **Diagnostics:** Run `diagnostics.sql` in SQL Editor
 
 ---
