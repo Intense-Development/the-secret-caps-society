@@ -5,7 +5,6 @@ import {
   removeLocalePrefix,
   getPathnameWithoutLocale,
 } from "../routing";
-import { localeCodes } from "../config";
 
 describe("i18n Routing", () => {
   describe("getLocalePath", () => {

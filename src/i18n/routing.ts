@@ -1,4 +1,4 @@
-import { localeCodes, defaultLocale } from "./config";
+import { localeCodes } from "./config";
 
 /**
  * Generates a localized path for a given pathname and locale

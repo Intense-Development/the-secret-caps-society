@@ -25,7 +25,8 @@ const esMessages = {
   },
 };
 
-const renderWithLocale = (locale: string, messages: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderWithLocale = (locale: string, messages: Record<string, any>) => {
   return render(
     <NextIntlClientProvider locale={locale} messages={messages}>
       <Navbar />

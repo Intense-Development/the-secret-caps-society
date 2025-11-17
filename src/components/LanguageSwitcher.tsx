@@ -18,8 +18,6 @@ export default function LanguageSwitcher() {
   const router = useRouter();
   const t = useTranslations("nav");
 
-  const currentLocale = locales.find((l) => l.code === locale);
-
   const handleLocaleChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale });
   };

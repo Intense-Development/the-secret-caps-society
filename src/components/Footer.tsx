@@ -4,13 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/routing-config";
 import { useTranslations } from "next-intl";
-import { useLocale } from "next-intl";
-import { formatDate } from "@/lib/i18n-formatting";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 
 export const Footer = () => {
   const t = useTranslations("footer");
-  const locale = useLocale();
 
   return (
     <footer className="bg-background border-t">
