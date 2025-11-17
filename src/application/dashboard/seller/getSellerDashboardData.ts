@@ -182,7 +182,7 @@ export async function getSellerProductsCount(
  * Get products with stock < 10 from seller's stores
  * Ordered by stock ascending (lowest first)
  */
-async function getSellerLowStockProductsInternal(storeIds: string[]) {
+export async function getSellerLowStockProducts(storeIds: string[]) {
   if (storeIds.length === 0) {
     return [];
   }
@@ -209,22 +209,6 @@ async function getSellerLowStockProductsInternal(storeIds: string[]) {
       category: product.category ?? "Uncategorized",
     })) ?? []
   );
-}
-
-export async function getSellerLowStockProducts(storeIds: string[]) {
-  if (storeIds.length === 0) {
-    return [];
-  }
-
-  const cacheKey = `seller-low-stock-${storeIds.sort().join("-")}`;
-  return unstable_cache(
-    async () => getSellerLowStockProductsInternal(storeIds),
-    [cacheKey],
-    {
-      revalidate: 60,
-      tags: storeIds.map((id) => `dashboard-seller-store-${id}`),
-    }
-  )();
 }
 
 /**
