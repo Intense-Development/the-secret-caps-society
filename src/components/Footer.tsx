@@ -2,10 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import { Link } from "@/i18n/routing-config";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
+import { formatDate } from "@/lib/i18n-formatting";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 
 export const Footer = () => {
+  const t = useTranslations("footer");
+  const locale = useLocale();
+
   return (
     <footer className="bg-background border-t">
       <div className="container mx-auto px-4 py-12 md:py-16">
@@ -16,8 +22,7 @@ export const Footer = () => {
               SECRET CAPS SOCIETY
             </h3>
             <p className="text-muted-foreground text-sm">
-              The premium marketplace for cap resellers. Join our community and
-              start selling today.
+              {t("description")}
             </p>
             <div className="flex space-x-4">
               <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -38,7 +43,7 @@ export const Footer = () => {
           {/* Quick links */}
           <div>
             <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">
-              Quick Links
+              {t("quickLinks")}
             </h4>
             <ul className="space-y-2">
               <li>
@@ -46,7 +51,7 @@ export const Footer = () => {
                   href="/products"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  Products
+                  {t("products")}
                 </Link>
               </li>
               <li>
@@ -54,7 +59,7 @@ export const Footer = () => {
                   href="/stores"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  Stores
+                  {t("stores")}
                 </Link>
               </li>
               <li>
@@ -62,7 +67,7 @@ export const Footer = () => {
                   href="/about"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  About Us
+                  {t("aboutUs")}
                 </Link>
               </li>
               <li>
@@ -70,7 +75,7 @@ export const Footer = () => {
                   href="/contact"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  Contact
+                  {t("contact")}
                 </Link>
               </li>
             </ul>
@@ -79,7 +84,7 @@ export const Footer = () => {
           {/* Legal */}
           <div>
             <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">
-              Legal
+              {t("legal")}
             </h4>
             <ul className="space-y-2">
               <li>
@@ -87,7 +92,7 @@ export const Footer = () => {
                   href="/terms"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  Terms of Service
+                  {t("termsOfService")}
                 </Link>
               </li>
               <li>
@@ -95,7 +100,7 @@ export const Footer = () => {
                   href="/privacy"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  Privacy Policy
+                  {t("privacyPolicy")}
                 </Link>
               </li>
               <li>
@@ -103,7 +108,7 @@ export const Footer = () => {
                   href="/cookies"
                   className="text-muted-foreground text-sm hover:text-foreground transition-colors"
                 >
-                  Cookie Policy
+                  {t("cookiePolicy")}
                 </Link>
               </li>
             </ul>
@@ -112,30 +117,28 @@ export const Footer = () => {
           {/* Newsletter */}
           <div>
             <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">
-              Stay Updated
+              {t("stayUpdated")}
             </h4>
             <p className="text-muted-foreground text-sm mb-4">
-              Subscribe to our newsletter for the latest drops and exclusive
-              offers.
+              {t("newsletterDescription")}
             </p>
             <div className="flex space-x-2">
               <Input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t("emailPlaceholder")}
                 className="h-9"
               />
-              <Button className="h-9">Subscribe</Button>
+              <Button className="h-9">{t("subscribe")}</Button>
             </div>
           </div>
         </div>
 
         <div className="border-t mt-12 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Secret Caps Society. All rights
-            reserved.
+            {t("copyright", { year: new Date().getFullYear() })}
           </p>
           <p className="text-xs text-muted-foreground mt-2 md:mt-0">
-            Designed and developed with ♥
+            {t("designedWith")}
           </p>
         </div>
       </div>
