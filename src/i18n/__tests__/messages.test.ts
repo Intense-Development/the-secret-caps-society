@@ -41,7 +41,8 @@ describe("Message Loading", () => {
   it("should fallback to English when locale file missing", async () => {
     // This test would require mocking file system
     // For now, we test that loadMessages handles errors gracefully
-    const messages = await loadMessages("fr" as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messages = await loadMessages("fr" as any); // Type assertion needed for test
     // Should fallback to English
     expect(messages).toBeDefined();
   });

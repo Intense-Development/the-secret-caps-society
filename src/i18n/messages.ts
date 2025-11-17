@@ -1,6 +1,5 @@
-import { getRequestConfig } from "next-intl/server";
-
-export type Messages = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Messages = Record<string, any>; // Needed for dynamic message structure
 
 /**
  * Loads messages for a given locale
@@ -34,7 +33,8 @@ export function getTranslation(
   params?: Record<string, string | number>
 ): string {
   const keys = key.split(".");
-  let value: any = messages;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let value: any = messages; // Needed for dynamic property access
 
   for (const k of keys) {
     if (value && typeof value === "object" && k in value) {

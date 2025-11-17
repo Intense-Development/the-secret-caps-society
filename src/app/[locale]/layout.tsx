@@ -1,5 +1,4 @@
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing-config";
 import { getLocaleDirection } from "@/i18n/locale";
@@ -27,7 +26,13 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   // Ensure that the incoming `locale` is valid
-  if (!routing.locales.includes(locale as any)) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isValidLocale = (loc: string): loc is (typeof routing.locales)[number] => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return routing.locales.includes(loc as any);
+  };
+  
+  if (!isValidLocale(locale)) {
     notFound();
   }
 
