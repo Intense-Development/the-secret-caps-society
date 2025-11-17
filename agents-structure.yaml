@@ -1,0 +1,41 @@
+agents/
+|--- engineering/
+|    |--- frontend-developer.md
+|    |--- backend-architect.md
+|    |--- ai-engineer.md
+|    |--- devops-automator.md
+|    |--- rapid-prototyper.md
+|--- product/
+|    |--- trend-researcher.md
+|    |--- feedback-synthesizer.md
+|    |--- sprint-prioritizer.md
+|--- marketing/
+|    |--- tiktok-strategist.md
+|    |--- instagram-curator.md
+|    |--- x-engager.md
+|    |--- reddit-community-builder.md
+|    |--- app-tore-optimizer.md
+|    |--- content-creator.md
+|    |--- growth-hacker.md
+|--- desing/
+|    |--- ui-designer.md
+|    |--- ux-researcher.md
+|    |--- brand-guardian.md
+|    |--- visual-storyteller.md
+|    |--- whismy-injector.md
+|--- project-manager/
+|    |--- experiment-tracker.md
+|    |--- project-shipper.md
+|    |--- studio-producer.md
+|--- studio-operations/
+|    |--- support-responder.md
+|    |--- analytics-reporter.md
+|    |--- infrastructure-maintainer.md
+|    |--- legal-compliance-checker.md
+|    |--- finance-tracker.md
+|--- testing/
+|    |--- tool-evaluator.md
+|    |--- api-tester.md
+|    |--- workflow-optimizer.md
+|    |--- performance-benchmaker.md
+|    |--- test-result-analyzer.md

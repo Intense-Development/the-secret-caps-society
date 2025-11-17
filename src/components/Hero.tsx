@@ -1,12 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Link } from "@/i18n/routing-config";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import AnimatedSection from "./AnimatedSection";
 import { ArrowRight } from "lucide-react";
 
 export const Hero = () => {
+  const t = useTranslations("hero");
+
   return (
     <section className="relative pt-20 pb-16 lg:pt-40 lg:pb-24 overflow-hidden">
       {/* Background pattern */}
@@ -81,21 +84,19 @@ export const Hero = () => {
         <div className="max-w-[85rem] mx-auto text-center">
           <AnimatedSection animation="fade-in">
             <p className="inline-block text-sm font-medium bg-secondary/50 px-3 py-1 rounded-full mb-6">
-              Exclusive Cap Marketplace
+              {t("badge")}
             </p>
           </AnimatedSection>
 
           <AnimatedSection animation="slide-up" delay={100}>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 max-w-4xl mx-auto text-balance">
-              The Premium Marketplace for Cap Resellers
+              {t("title")}
             </h1>
           </AnimatedSection>
 
           <AnimatedSection animation="slide-up" delay={200}>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8 text-balance">
-              Join the exclusive network of authenticated resellers and list
-              your products for free. Connect with cap enthusiasts and grow your
-              business.
+              {t("description")}
             </p>
           </AnimatedSection>
 
@@ -103,7 +104,7 @@ export const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto px-8">
-                  Sign Up <ArrowRight className="ml-2 h-4 w-4" />
+                  {t("signUp")} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/products">
@@ -112,7 +113,7 @@ export const Hero = () => {
                   size="lg"
                   className="w-full sm:w-auto px-8"
                 >
-                  Browse Products
+                  {t("browseProducts")}
                 </Button>
               </Link>
             </div>
@@ -139,7 +140,7 @@ export const Hero = () => {
               {/* Floating badge */}
               <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 bg-white shadow-soft py-2 px-4 rounded-full text-sm font-medium flex items-center">
                 <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                <span>Trusted by 500+ resellers</span>
+                <span>{t("trustedBy", { count: 500 })}</span>
               </div>
             </div>
           </AnimatedSection>

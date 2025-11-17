@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing-config";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Search, User, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import CartIndicator from "@/components/CartIndicator";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
 
 export const Navbar = () => {
+  const t = useTranslations("nav");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -83,25 +86,26 @@ export const Navbar = () => {
               href="/products"
               className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
             >
-              Products
+              {t("products")}
             </Link>
             <Link
               href="/stores"
               className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
             >
-              Stores
+              {t("stores")}
             </Link>
             <Link
               href="/about"
               className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
             >
-              About
+              {t("about")}
             </Link>
           </nav>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
+            <LanguageSwitcher />
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <Search className="h-4 w-4" />
               <span className="sr-only">Search</span>
@@ -114,18 +118,18 @@ export const Navbar = () => {
                 <Link href="/dashboard">
                   <Button variant="default" size="sm" className="h-9">
                     <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
+                    {t("dashboard")}
                   </Button>
                 </Link>
               ) : (
                 <>
-                  <Link href="/login" className="flex items-cente">
-                    Login
+                  <Link href="/login" className="flex items-center text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                    {t("login")}
                   </Link>
                   <Link href="/register">
                     <Button variant="default" size="sm" className="h-9">
                       <User className="h-4 w-4 mr-2" />
-                      Sign Up
+                      {t("signUp")}
                     </Button>
                   </Link>
                 </>
@@ -158,24 +162,25 @@ export const Navbar = () => {
               className="block py-2 text-foreground/80 hover:text-foreground"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Products
+              {t("products")}
             </Link>
             <Link
               href="/stores"
               className="block py-2 text-foreground/80 hover:text-foreground"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Stores
+              {t("stores")}
             </Link>
             <Link
               href="/about"
               className="block py-2 text-foreground/80 hover:text-foreground"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              About
+              {t("about")}
             </Link>
             <div className="pt-3 flex items-center space-x-3">
               <ThemeToggle />
+              <LanguageSwitcher />
               <Button
                 variant="ghost"
                 size="icon"
@@ -196,7 +201,7 @@ export const Navbar = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <LayoutDashboard className="h-4 w-4 mr-2" />
-                      Dashboard
+                      {t("dashboard")}
                     </Button>
                   </Link>
                 ) : (
@@ -207,7 +212,7 @@ export const Navbar = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <User className="h-4 w-4 mr-2" />
-                      Sign Up
+                      {t("signUp")}
                     </Button>
                   </Link>
                 ))}
