@@ -1,0 +1,49 @@
+{
+  "nav": {
+    "products": "المنتجات",
+    "stores": "المتاجر",
+    "about": "حول",
+    "login": "تسجيل الدخول",
+    "signUp": "التسجيل",
+    "dashboard": "لوحة التحكم",
+    "language": "تغيير اللغة"
+  },
+  "hero": {
+    "badge": "سوق القبعات الحصري",
+    "title": "السوق المميز لبائعي القبعات",
+    "description": "انضم إلى شبكة البائعين المعتمدين الحصرية وقم بإدراج منتجاتك مجانًا. تواصل مع عشاق القبعات ونمّي عملك.",
+    "signUp": "التسجيل",
+    "browseProducts": "تصفح المنتجات",
+    "trustedBy": "موثوق به من قبل {count}+ بائع"
+  },
+  "footer": {
+    "description": "السوق المميز لبائعي القبعات. انضم إلى مجتمعنا وابدأ البيع اليوم.",
+    "quickLinks": "روابط سريعة",
+    "legal": "قانوني",
+    "stayUpdated": "ابق على اطلاع",
+    "newsletterDescription": "اشترك في نشرتنا الإخبارية للحصول على آخر الإصدارات والعروض الحصرية.",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "subscribe": "اشترك",
+    "copyright": "© {year} Secret Caps Society. جميع الحقوق محفوظة.",
+    "designedWith": "صمم وطور بـ ♥",
+    "products": "المنتجات",
+    "stores": "المتاجر",
+    "aboutUs": "من نحن",
+    "contact": "اتصل بنا",
+    "termsOfService": "شروط الخدمة",
+    "privacyPolicy": "سياسة الخصوصية",
+    "cookiePolicy": "سياسة ملفات تعريف الارتباط"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "search": "بحث"
+  }
+}
+

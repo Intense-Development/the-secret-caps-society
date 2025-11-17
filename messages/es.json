@@ -1,0 +1,49 @@
+{
+  "nav": {
+    "products": "Productos",
+    "stores": "Tiendas",
+    "about": "Acerca de",
+    "login": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "dashboard": "Panel",
+    "language": "Cambiar idioma"
+  },
+  "hero": {
+    "badge": "Mercado Exclusivo de Gorras",
+    "title": "El Mercado Premium para Revendedores de Gorras",
+    "description": "Únete a la red exclusiva de revendedores autenticados y lista tus productos gratis. Conecta con entusiastas de gorras y haz crecer tu negocio.",
+    "signUp": "Registrarse",
+    "browseProducts": "Explorar Productos",
+    "trustedBy": "Confiado por {count}+ revendedores"
+  },
+  "footer": {
+    "description": "El mercado premium para revendedores de gorras. Únete a nuestra comunidad y comienza a vender hoy.",
+    "quickLinks": "Enlaces Rápidos",
+    "legal": "Legal",
+    "stayUpdated": "Mantente Actualizado",
+    "newsletterDescription": "Suscríbete a nuestro boletín para las últimas novedades y ofertas exclusivas.",
+    "emailPlaceholder": "Ingresa tu correo",
+    "subscribe": "Suscribirse",
+    "copyright": "© {year} Secret Caps Society. Todos los derechos reservados.",
+    "designedWith": "Diseñado y desarrollado con ♥",
+    "products": "Productos",
+    "stores": "Tiendas",
+    "aboutUs": "Acerca de Nosotros",
+    "contact": "Contacto",
+    "termsOfService": "Términos de Servicio",
+    "privacyPolicy": "Política de Privacidad",
+    "cookiePolicy": "Política de Cookies"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar"
+  }
+}
+
