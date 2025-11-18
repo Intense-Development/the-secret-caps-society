@@ -27,7 +27,7 @@ interface AdminDashboardClientProps {
 export function AdminDashboardClient({ initialData }: AdminDashboardClientProps) {
   const t = useTranslations("admin.dashboard");
   const router = useRouter();
-  const [dashboardData, setDashboardData] = useState(initialData);
+  const [dashboardData] = useState(initialData);
 
   // Handle store changes (approvals, rejections, new stores)
   const handleStoreChange = useCallback(

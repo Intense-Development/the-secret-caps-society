@@ -5,10 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AdminDashboardLayout } from "./AdminDashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Loader2, Check, X, ArrowLeft, ExternalLink, MapPin, Globe, Building2 } from "lucide-react";
+import { Loader2, Check, X, ArrowLeft, ExternalLink, MapPin } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
