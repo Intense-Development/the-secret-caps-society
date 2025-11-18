@@ -45,11 +45,11 @@ export function RecentActivityList({ activities }: RecentActivityListProps) {
       <Card>
         <CardHeader>
           <CardTitle>{t("recentActivity")}</CardTitle>
-          <CardDescription>Latest platform activities</CardDescription>
+          <CardDescription>{t("recentActivityDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-muted-foreground py-8">
-            No recent activity
+            {t("noRecentActivity")}
           </p>
         </CardContent>
       </Card>
@@ -57,11 +57,11 @@ export function RecentActivityList({ activities }: RecentActivityListProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("recentActivity")}</CardTitle>
-        <CardDescription>Latest platform activities</CardDescription>
-      </CardHeader>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("recentActivity")}</CardTitle>
+          <CardDescription>{t("recentActivityDesc")}</CardDescription>
+        </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => {

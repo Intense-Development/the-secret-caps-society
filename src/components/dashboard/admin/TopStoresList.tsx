@@ -39,11 +39,11 @@ export function TopStoresList({ stores }: TopStoresListProps) {
       <Card>
         <CardHeader>
           <CardTitle>{t("topStores")}</CardTitle>
-          <CardDescription>Top performing stores</CardDescription>
+          <CardDescription>{t("topStoresDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-muted-foreground py-8">
-            No stores data available
+            {t("noStoresData")}
           </p>
         </CardContent>
       </Card>
@@ -51,20 +51,20 @@ export function TopStoresList({ stores }: TopStoresListProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("topStores")}</CardTitle>
-        <CardDescription>Top performing stores</CardDescription>
-      </CardHeader>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("topStores")}</CardTitle>
+          <CardDescription>{t("topStoresDesc")}</CardDescription>
+        </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Store</TableHead>
+              <TableHead>{t("table.store")}</TableHead>
               <TableHead>{t("revenue")}</TableHead>
               <TableHead>{t("orders")}</TableHead>
-              <TableHead>Growth</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("table.growth")}</TableHead>
+              <TableHead className="text-right">{t("table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

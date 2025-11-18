@@ -114,11 +114,11 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
       <Card>
         <CardHeader>
           <CardTitle>{t("pendingStores")}</CardTitle>
-          <CardDescription>Stores awaiting verification</CardDescription>
+          <CardDescription>{t("pendingStoresDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-muted-foreground py-8">
-            No pending stores at this time
+            {t("noPendingStores")}
           </p>
         </CardContent>
       </Card>
@@ -126,20 +126,20 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("pendingStores")}</CardTitle>
-        <CardDescription>Stores awaiting verification</CardDescription>
-      </CardHeader>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("pendingStores")}</CardTitle>
+          <CardDescription>{t("pendingStoresDesc")}</CardDescription>
+        </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Store Name</TableHead>
-              <TableHead>Owner</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Submitted</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("table.storeName")}</TableHead>
+              <TableHead>{t("table.owner")}</TableHead>
+              <TableHead>{t("table.category")}</TableHead>
+              <TableHead>{t("table.submitted")}</TableHead>
+              <TableHead className="text-right">{t("table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -178,16 +178,15 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Approve Store</AlertDialogTitle>
+                          <AlertDialogTitle>{t("approveConfirmTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to approve "{store.name}"? This action will
-                            verify the store and allow it to start selling on the platform.
+                            {t("approveConfirmDesc", { name: store.name })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => handleApprove(store.id)}>
-                            Approve
+                            {t("approve")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -209,16 +208,15 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Reject Store</AlertDialogTitle>
+                          <AlertDialogTitle>{t("rejectConfirmTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to reject "{store.name}"? This action cannot be
-                            undone easily.
+                            {t("rejectConfirmDesc", { name: store.name })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => handleReject(store.id)}>
-                            Reject
+                            {t("reject")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

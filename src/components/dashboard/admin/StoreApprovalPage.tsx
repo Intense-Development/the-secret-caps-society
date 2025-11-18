@@ -165,10 +165,10 @@ export function StoreApprovalPage() {
     return (
       <AdminDashboardLayout>
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Store not found</p>
+          <p className="text-muted-foreground">{t("storeNotFound")}</p>
           <Button variant="outline" onClick={() => router.back()} className="mt-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Back
+            {t("goBack")}
           </Button>
         </div>
       </AdminDashboardLayout>
@@ -201,22 +201,21 @@ export function StoreApprovalPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Approve Store</AlertDialogTitle>
+                      <AlertDialogTitle>{t("approveConfirm")}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to approve this store? This action will verify the
-                        store and allow it to start selling on the platform.
+                        {t("approveConfirmDesc")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                       <AlertDialogAction onClick={handleApprove} disabled={approving}>
                         {approving ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Approving...
+                            {t("approving")}
                           </>
                         ) : (
-                          "Approve"
+                          t("approve")
                         )}
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -232,17 +231,17 @@ export function StoreApprovalPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Reject Store</AlertDialogTitle>
+                      <AlertDialogTitle>{t("rejectConfirm")}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Please provide a reason for rejecting this store application.
+                        {t("rejectReasonDesc")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="space-y-4 py-4">
                       <div>
-                        <Label htmlFor="reason">Reason for Rejection</Label>
+                        <Label htmlFor="reason">{t("rejectReason")}</Label>
                         <Textarea
                           id="reason"
-                          placeholder="Enter reason for rejection..."
+                          placeholder={t("rejectReasonPlaceholder")}
                           value={rejectReason}
                           onChange={(e) => setRejectReason(e.target.value)}
                           className="mt-2"
@@ -250,7 +249,7 @@ export function StoreApprovalPage() {
                       </div>
                     </div>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleReject}
                         disabled={rejecting || !rejectReason.trim()}
@@ -258,10 +257,10 @@ export function StoreApprovalPage() {
                         {rejecting ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Rejecting...
+                            {t("rejecting")}
                           </>
                         ) : (
-                          "Reject"
+                          t("reject")
                         )}
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -277,24 +276,24 @@ export function StoreApprovalPage() {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>{t("basicInformation")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {store.description && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Description</p>
+                  <p className="text-sm font-medium mb-1">{t("description")}</p>
                   <p className="text-sm text-muted-foreground">{store.description}</p>
                 </div>
               )}
               {store.owner && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Owner</p>
+                  <p className="text-sm font-medium mb-1">{t("owner")}</p>
                   <p className="text-sm text-muted-foreground">{store.owner.name}</p>
                   <p className="text-xs text-muted-foreground">{store.owner.email}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium mb-1">Created</p>
+                <p className="text-sm font-medium mb-1">{t("created")}</p>
                 <p className="text-sm text-muted-foreground">
                   {new Date(store.created_at).toLocaleDateString()}
                 </p>
@@ -305,12 +304,12 @@ export function StoreApprovalPage() {
           {/* Business Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Business Information</CardTitle>
+              <CardTitle>{t("businessInformation")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {store.business_type && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Business Type</p>
+                  <p className="text-sm font-medium mb-1">{t("businessType")}</p>
                   <p className="text-sm text-muted-foreground capitalize">
                     {store.business_type.replace("-", " ")}
                   </p>
@@ -318,13 +317,13 @@ export function StoreApprovalPage() {
               )}
               {store.tax_id && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Tax ID</p>
+                  <p className="text-sm font-medium mb-1">{t("taxId")}</p>
                   <p className="text-sm text-muted-foreground font-mono">{store.tax_id}</p>
                 </div>
               )}
               {store.website && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Website</p>
+                  <p className="text-sm font-medium mb-1">{t("website")}</p>
                   <a
                     href={store.website}
                     target="_blank"
@@ -342,7 +341,7 @@ export function StoreApprovalPage() {
           {/* Address */}
           <Card>
             <CardHeader>
-              <CardTitle>Address</CardTitle>
+              <CardTitle>{t("address")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-2">
@@ -361,7 +360,7 @@ export function StoreApprovalPage() {
           {store.verification_document_url && (
             <Card>
               <CardHeader>
-                <CardTitle>Verification Document</CardTitle>
+                <CardTitle>{t("verificationDocument")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <a
@@ -371,7 +370,7 @@ export function StoreApprovalPage() {
                   className="text-sm text-primary hover:underline flex items-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  View Document
+                  {t("viewDocument")}
                 </a>
               </CardContent>
             </Card>

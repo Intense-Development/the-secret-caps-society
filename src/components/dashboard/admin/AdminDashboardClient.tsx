@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { RevenueTrendChart } from "./RevenueTrendChart";
@@ -24,6 +25,7 @@ interface AdminDashboardClientProps {
  * Handles realtime subscriptions and updates the dashboard when data changes
  */
 export function AdminDashboardClient({ initialData }: AdminDashboardClientProps) {
+  const t = useTranslations("admin.dashboard");
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState(initialData);
 
@@ -38,20 +40,20 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
         const store = payload.new;
         if (store && store.verification_status) {
           // If a store was approved/rejected, refresh the dashboard
-          toast.info("Store status updated", {
-            description: `Store "${store.name}" status changed`,
+          toast.info(t("storeStatusUpdated"), {
+            description: t("storeStatusUpdatedDesc", { name: store.name }),
           });
           router.refresh();
         }
       } else if (payload.eventType === "INSERT") {
         // New store added
-        toast.info("New store application", {
-          description: "A new store has applied for verification",
+        toast.info(t("newStoreApplication"), {
+          description: t("newStoreApplicationDesc"),
         });
         router.refresh();
       }
     },
-    [router]
+    [router, t]
   );
 
   // Handle order changes
@@ -95,8 +97,8 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h2>
-        <p className="text-muted-foreground">Platform overview and management</p>
+        <h2 className="text-2xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       {/* Overview Cards */}
@@ -107,8 +109,8 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
         {/* Revenue Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
-            <CardDescription>Platform revenue over the last 6 months</CardDescription>
+            <CardTitle>{t("revenueTrend")}</CardTitle>
+            <CardDescription>{t("revenueTrendDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <RevenueTrendChart data={dashboardData.revenueTrend} />
@@ -118,8 +120,8 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
         {/* Category Distribution Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Category Distribution</CardTitle>
-            <CardDescription>Product distribution across categories</CardDescription>
+            <CardTitle>{t("categoryDistribution")}</CardTitle>
+            <CardDescription>{t("categoryDistributionDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <CategoryDistributionChart data={dashboardData.categoryDistribution} />
@@ -129,8 +131,8 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
         {/* Order Status Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Order Status</CardTitle>
-            <CardDescription>Current order distribution by status</CardDescription>
+            <CardTitle>{t("orderStatus")}</CardTitle>
+            <CardDescription>{t("orderStatusDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <OrderStatusChart data={dashboardData.orderStatus} />
@@ -140,8 +142,8 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
         {/* Store Locations Map */}
         <Card>
           <CardHeader>
-            <CardTitle>Store Locations</CardTitle>
-            <CardDescription>Active stores around the world</CardDescription>
+            <CardTitle>{t("storeLocations")}</CardTitle>
+            <CardDescription>{t("storeLocationsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <StoreLocationsMap stores={dashboardData.storeLocations} />
