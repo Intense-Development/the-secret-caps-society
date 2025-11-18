@@ -1,15 +1,18 @@
+import { AdminDashboardLayout } from "./AdminDashboardLayout";
+import { getAdminDashboardData } from "@/application/dashboard/admin/getAdminDashboardData";
+import { AdminDashboardClient } from "./AdminDashboardClient";
+
 /**
- * Admin Dashboard Component
- * TODO: Implement admin dashboard in separate issue
- * This is a placeholder for the refactored dashboard page
+ * Admin Dashboard Component (Server Component)
+ * Fetches initial data and passes it to client component for realtime updates
  */
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const dashboardData = await getAdminDashboardData();
+
   return (
-    <div className="space-y-8">
-      <p className="text-muted-foreground">
-        Admin dashboard will be implemented in a separate issue.
-      </p>
-    </div>
+    <AdminDashboardLayout>
+      <AdminDashboardClient initialData={dashboardData} />
+    </AdminDashboardLayout>
   );
 }
 

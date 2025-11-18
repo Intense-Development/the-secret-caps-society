@@ -9,4 +9,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+// Apply the plugin
+const config = withNextIntl(nextConfig);
+
+export default config;
