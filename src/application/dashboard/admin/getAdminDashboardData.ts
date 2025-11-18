@@ -382,11 +382,18 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
     // Add order activities
     recentOrdersResult.data?.forEach((order) => {
+      // Handle buyer as array (Supabase relationship) or single object
+      const buyerData = Array.isArray(order.buyer)
+        ? order.buyer[0]
+        : order.buyer;
+      const buyerName =
+        (buyerData as { name: string } | null)?.name || "Unknown";
+
       recentActivities.push({
         id: `order-${order.id}`,
         type: "order_placed",
         description: `Order #${order.id.slice(0, 8)} was placed`,
-        user: (order.buyer as { name: string })?.name || "Unknown",
+        user: buyerName,
         timestamp: new Date(order.created_at),
       });
     });
