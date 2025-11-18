@@ -6,7 +6,8 @@
     "login": "Iniciar sesión",
     "signUp": "Registrarse",
     "dashboard": "Panel",
-    "language": "Cambiar idioma"
+    "language": "Cambiar idioma",
+    "logout": "Cerrar Sesión"
   },
   "hero": {
     "badge": "Mercado Exclusivo de Gorras",
@@ -44,6 +45,16 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "search": "Buscar"
+  },
+  "auth": {
+    "logout": {
+      "title": "Cerrar Sesión",
+      "description": "¿Estás seguro de que quieres cerrar sesión?",
+      "descriptionWithChanges": "Tienes cambios sin guardar. ¿Estás seguro de que quieres cerrar sesión?",
+      "confirm": "Cerrar Sesión",
+      "cancel": "Cancelar",
+      "loggingOut": "Cerrando sesión..."
+    }
   }
 }
 
