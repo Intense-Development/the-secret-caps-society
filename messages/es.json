@@ -88,6 +88,20 @@
       "viewStore": "Ver Tienda",
       "revenue": "Ingresos",
       "orders": "Pedidos"
+    },
+    "stores": {
+      "storeDetails": "Detalles de la Tienda",
+      "verificationStatus": "Estado de Verificación",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "approveConfirm": "¿Está seguro de que desea aprobar esta tienda?",
+      "rejectConfirm": "¿Está seguro de que desea rechazar esta tienda?",
+      "rejectReason": "Razón del Rechazo",
+      "rejectReasonPlaceholder": "Ingrese la razón del rechazo...",
+      "approved": "Tienda aprobada exitosamente",
+      "rejected": "Tienda rechazada",
+      "approveError": "Error al aprobar la tienda",
+      "rejectError": "Error al rechazar la tienda"
     }
   }
 }

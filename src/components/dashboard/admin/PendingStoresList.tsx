@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing-config";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +15,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
-import { Check, X, ExternalLink } from "lucide-react";
+import { Check, X, ExternalLink, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export type PendingStore = {
   id: string;
@@ -34,6 +48,66 @@ interface PendingStoresListProps {
  */
 export function PendingStoresList({ stores }: PendingStoresListProps) {
   const t = useTranslations("admin.dashboard");
+  const router = useRouter();
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+
+  const handleApprove = async (storeId: string) => {
+    setProcessingIds((prev) => new Set(prev).add(storeId));
+    try {
+      const response = await fetch(`/api/admin/stores/${storeId}/approve`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Store approved successfully");
+        router.refresh();
+      } else {
+        toast.error(data.error || "Failed to approve store");
+      }
+    } catch (error) {
+      console.error("Error approving store:", error);
+      toast.error("Failed to approve store");
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(storeId);
+        return next;
+      });
+    }
+  };
+
+  const handleReject = async (storeId: string) => {
+    setProcessingIds((prev) => new Set(prev).add(storeId));
+    try {
+      const response = await fetch(`/api/admin/stores/${storeId}/reject`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: "Rejected from dashboard" }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Store rejected");
+        router.refresh();
+      } else {
+        toast.error(data.error || "Failed to reject store");
+      }
+    } catch (error) {
+      console.error("Error rejecting store:", error);
+      toast.error("Failed to reject store");
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(storeId);
+        return next;
+      });
+    }
+  };
 
   if (stores.length === 0) {
     return (
@@ -87,14 +161,68 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
                         {t("viewDetails")}
                       </Link>
                     </Button>
-                    <Button variant="default" size="sm">
-                      <Check className="h-4 w-4 mr-1" />
-                      {t("approve")}
-                    </Button>
-                    <Button variant="destructive" size="sm">
-                      <X className="h-4 w-4 mr-1" />
-                      {t("reject")}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          disabled={processingIds.has(store.id)}
+                        >
+                          {processingIds.has(store.id) ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4 mr-1" />
+                          )}
+                          {t("approve")}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Approve Store</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to approve "{store.name}"? This action will
+                            verify the store and allow it to start selling on the platform.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleApprove(store.id)}>
+                            Approve
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={processingIds.has(store.id)}
+                        >
+                          {processingIds.has(store.id) ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <X className="h-4 w-4 mr-1" />
+                          )}
+                          {t("reject")}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Reject Store</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to reject "{store.name}"? This action cannot be
+                            undone easily.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleReject(store.id)}>
+                            Reject
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>

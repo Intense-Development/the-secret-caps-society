@@ -88,7 +88,20 @@
       "viewStore": "عرض المتجر",
       "revenue": "الإيرادات",
       "orders": "الطلبات"
+    },
+    "stores": {
+      "storeDetails": "تفاصيل المتجر",
+      "verificationStatus": "حالة التحقق",
+      "approve": "الموافقة",
+      "reject": "الرفض",
+      "approveConfirm": "هل أنت متأكد من أنك تريد الموافقة على هذا المتجر؟",
+      "rejectConfirm": "هل أنت متأكد من أنك تريد رفض هذا المتجر؟",
+      "rejectReason": "سبب الرفض",
+      "rejectReasonPlaceholder": "أدخل سبب الرفض...",
+      "approved": "تمت الموافقة على المتجر بنجاح",
+      "rejected": "تم رفض المتجر",
+      "approveError": "فشل في الموافقة على المتجر",
+      "rejectError": "فشل في رفض المتجر"
     }
   }
 }
-

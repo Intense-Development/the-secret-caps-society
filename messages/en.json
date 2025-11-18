@@ -88,6 +88,20 @@
       "viewStore": "View Store",
       "revenue": "Revenue",
       "orders": "Orders"
+    },
+    "stores": {
+      "storeDetails": "Store Details",
+      "verificationStatus": "Verification Status",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveConfirm": "Are you sure you want to approve this store?",
+      "rejectConfirm": "Are you sure you want to reject this store?",
+      "rejectReason": "Reason for Rejection",
+      "rejectReasonPlaceholder": "Enter reason for rejection...",
+      "approved": "Store approved successfully",
+      "rejected": "Store rejected",
+      "approveError": "Failed to approve store",
+      "rejectError": "Failed to reject store"
     }
   }
 }

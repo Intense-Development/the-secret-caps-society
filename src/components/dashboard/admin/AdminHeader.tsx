@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import {
-  Bell,
-  User,
-  ChevronDown,
-} from "lucide-react";
+import { Bell, User, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +47,7 @@ export function AdminHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center gap-4 px-4 md:px-6">
         <SidebarTrigger />
-        
+
         <div className="flex-1 max-w-md">
           <AdminSearch />
         </div>
@@ -90,4 +86,3 @@ export function AdminHeader() {
     </header>
   );
 }
-
