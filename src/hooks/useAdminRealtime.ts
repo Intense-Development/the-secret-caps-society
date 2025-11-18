@@ -27,13 +27,13 @@ export function useAdminRealtime({
 }: UseAdminRealtimeOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const channelsRef = useRef<RealtimeChannel[]>([]);
-  const supabase = createClient();
 
   useEffect(() => {
     if (!enabled) {
       return;
     }
 
+    const supabase = createClient();
     const channels: RealtimeChannel[] = [];
 
     // Subscribe to stores table changes
@@ -136,7 +136,7 @@ export function useAdminRealtime({
       channelsRef.current = [];
       setIsConnected(false);
     };
-  }, [enabled, onStoreChange, onOrderChange, onUserChange, supabase]);
+  }, [enabled, onStoreChange, onOrderChange, onUserChange]);
 
   return {
     isConnected,

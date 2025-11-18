@@ -1,8 +1,64 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { getAdminDashboardData } from "../getAdminDashboardData";
 
+// Mock Supabase server client
+const mockSupabase = {
+  from: jest.fn(),
+  select: jest.fn(),
+  eq: jest.fn(),
+  gte: jest.fn(),
+  lte: jest.fn(),
+  not: jest.fn(),
+  in: jest.fn(),
+  order: jest.fn(),
+  limit: jest.fn(),
+};
+
+jest.mock("@/lib/supabase/server", () => ({
+  createClient: jest.fn(async () => mockSupabase),
+}));
+
+// Helper to create a mock query chain
+function createMockQuery(data: unknown, count?: number) {
+  const chain = {
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    gte: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
+    not: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+  };
+
+  if (count !== undefined) {
+    // For count queries
+    return Promise.resolve({ data: null, count, error: null });
+  }
+
+  // For data queries
+  chain.limit.mockResolvedValue({ data, error: null });
+  return chain;
+}
+
 describe("getAdminDashboardData", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("returns admin dashboard data with summary cards", async () => {
+    // Mock all the queries
+    mockSupabase.from.mockImplementation((table: string) => {
+      const mockData: Record<string, unknown> = {
+        orders: [{ total_amount: "100.00" }, { total_amount: "200.00" }],
+        stores: [{ id: "1" }, { id: "2" }],
+        users: [{ id: "1" }, { id: "2" }],
+        products: [{ category: "Baseball Caps" }, { category: "Snapbacks" }],
+      };
+
+      return createMockQuery(mockData[table] || []);
+    });
+
     const data = await getAdminDashboardData();
 
     expect(data).toBeDefined();
@@ -12,6 +68,15 @@ describe("getAdminDashboardData", () => {
   });
 
   it("returns correct summary card structure", async () => {
+    mockSupabase.from.mockImplementation(() => createMockQuery([]));
+    mockSupabase.from.mockImplementationOnce(() => ({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockResolvedValue({ data: [], error: null }),
+    }));
+
     const data = await getAdminDashboardData();
 
     data.summaryCards.forEach((card) => {
@@ -25,6 +90,8 @@ describe("getAdminDashboardData", () => {
   });
 
   it("includes all required summary cards", async () => {
+    mockSupabase.from.mockImplementation(() => createMockQuery([]));
+
     const data = await getAdminDashboardData();
 
     const cardIds = data.summaryCards.map((card) => card.id);
@@ -32,6 +99,19 @@ describe("getAdminDashboardData", () => {
     expect(cardIds).toContain("active-stores");
     expect(cardIds).toContain("pending-approvals");
     expect(cardIds).toContain("total-users");
+  });
+
+  it("handles database errors gracefully", async () => {
+    mockSupabase.from.mockImplementation(() => ({
+      select: jest.fn().mockRejectedValue(new Error("Database error")),
+    }));
+
+    const data = await getAdminDashboardData();
+
+    // Should return empty arrays on error
+    expect(data.summaryCards).toEqual([]);
+    expect(data.revenueTrend).toEqual([]);
+    expect(data.categoryDistribution).toEqual([]);
   });
 
   it("returns revenue trend data", async () => {
