@@ -72,6 +72,22 @@
       "notifications": "الإشعارات",
       "profile": "الملف الشخصي",
       "logout": "تسجيل الخروج"
+    },
+    "search": {
+      "placeholder": "البحث عن المتاجر والمنتجات والمستخدمين...",
+      "noResults": "لم يتم العثور على نتائج",
+      "loading": "جاري البحث..."
+    },
+    "dashboard": {
+      "pendingStores": "المتاجر المعلقة",
+      "viewDetails": "عرض التفاصيل",
+      "approve": "الموافقة",
+      "reject": "الرفض",
+      "recentActivity": "النشاط الأخير",
+      "topStores": "أفضل المتاجر",
+      "viewStore": "عرض المتجر",
+      "revenue": "الإيرادات",
+      "orders": "الطلبات"
     }
   }
 }

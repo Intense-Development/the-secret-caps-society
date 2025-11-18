@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Search,
   Bell,
   User,
   ChevronDown,
@@ -21,10 +19,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
 import { useLogout } from "@/hooks/useLogout";
+import { AdminSearch } from "./AdminSearch";
 
 export function AdminHeader() {
   const t = useTranslations("admin.header");
-  const [searchQuery, setSearchQuery] = useState("");
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   const { logout } = useLogout();
@@ -49,29 +47,14 @@ export function AdminHeader() {
     fetchUser();
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement search functionality
-    console.log("Search:", searchQuery);
-  };
-
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center gap-4 px-4 md:px-6">
         <SidebarTrigger />
         
-        <form onSubmit={handleSearch} className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder={t("search")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-        </form>
+        <div className="flex-1 max-w-md">
+          <AdminSearch />
+        </div>
 
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" title={t("notifications")}>

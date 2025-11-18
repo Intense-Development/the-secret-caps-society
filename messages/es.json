@@ -72,6 +72,22 @@
       "notifications": "Notificaciones",
       "profile": "Perfil",
       "logout": "Cerrar Sesión"
+    },
+    "search": {
+      "placeholder": "Buscar tiendas, productos, usuarios...",
+      "noResults": "No se encontraron resultados",
+      "loading": "Buscando..."
+    },
+    "dashboard": {
+      "pendingStores": "Tiendas Pendientes",
+      "viewDetails": "Ver Detalles",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "recentActivity": "Actividad Reciente",
+      "topStores": "Mejores Tiendas",
+      "viewStore": "Ver Tienda",
+      "revenue": "Ingresos",
+      "orders": "Pedidos"
     }
   }
 }

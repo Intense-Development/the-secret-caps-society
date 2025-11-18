@@ -72,6 +72,22 @@
       "notifications": "Notifications",
       "profile": "Profile",
       "logout": "Log Out"
+    },
+    "search": {
+      "placeholder": "Search stores, products, users...",
+      "noResults": "No results found",
+      "loading": "Searching..."
+    },
+    "dashboard": {
+      "pendingStores": "Pending Stores",
+      "viewDetails": "View Details",
+      "approve": "Approve",
+      "reject": "Reject",
+      "recentActivity": "Recent Activity",
+      "topStores": "Top Stores",
+      "viewStore": "View Store",
+      "revenue": "Revenue",
+      "orders": "Orders"
     }
   }
 }
