@@ -5,6 +5,9 @@ import { RevenueTrendChart } from "./RevenueTrendChart";
 import { CategoryDistributionChart } from "./CategoryDistributionChart";
 import { OrderStatusChart } from "./OrderStatusChart";
 import { StoreLocationsMap } from "./StoreLocationsMap";
+import { PendingStoresList } from "./PendingStoresList";
+import { RecentActivityList } from "./RecentActivityList";
+import { TopStoresList } from "./TopStoresList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
@@ -74,6 +77,24 @@ export default async function AdminDashboard() {
               <StoreLocationsMap stores={dashboardData.storeLocations} />
             </CardContent>
           </Card>
+        </div>
+
+        {/* Lists Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Pending Stores List */}
+          <div className="lg:col-span-1">
+            <PendingStoresList stores={dashboardData.pendingStores} />
+          </div>
+
+          {/* Recent Activity List */}
+          <div className="lg:col-span-1">
+            <RecentActivityList activities={dashboardData.recentActivities} />
+          </div>
+
+          {/* Top Stores List */}
+          <div className="lg:col-span-1">
+            <TopStoresList stores={dashboardData.topStores} />
+          </div>
         </div>
       </div>
     </AdminDashboardLayout>

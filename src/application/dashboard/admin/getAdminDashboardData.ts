@@ -3,6 +3,9 @@ import type { RevenueTrendData } from "@/components/dashboard/admin/RevenueTrend
 import type { CategoryDistributionData } from "@/components/dashboard/admin/CategoryDistributionChart";
 import type { OrderStatusData } from "@/components/dashboard/admin/OrderStatusChart";
 import type { StoreLocation } from "@/components/dashboard/admin/StoreLocationsMap";
+import type { PendingStore } from "@/components/dashboard/admin/PendingStoresList";
+import type { RecentActivity } from "@/components/dashboard/admin/RecentActivityList";
+import type { TopStore } from "@/components/dashboard/admin/TopStoresList";
 
 export type AdminDashboardData = {
   summaryCards: SummaryCard[];
@@ -10,6 +13,9 @@ export type AdminDashboardData = {
   categoryDistribution: CategoryDistributionData[];
   orderStatus: OrderStatusData[];
   storeLocations: StoreLocation[];
+  pendingStores: PendingStore[];
+  recentActivities: RecentActivity[];
+  topStores: TopStore[];
 };
 
 /**
@@ -91,12 +97,118 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     { id: "5", name: "Sydney Caps", lat: -33.8688, lng: 151.2093 },
   ];
 
+  // Mock pending stores data
+  const pendingStores: PendingStore[] = [
+    {
+      id: "pending-1",
+      name: "New York Caps Co",
+      owner: "John Doe",
+      submittedAt: new Date("2024-01-15"),
+      category: "Baseball Caps",
+    },
+    {
+      id: "pending-2",
+      name: "West Coast Headwear",
+      owner: "Jane Smith",
+      submittedAt: new Date("2024-01-14"),
+      category: "Snapbacks",
+    },
+    {
+      id: "pending-3",
+      name: "Urban Hats",
+      owner: "Mike Johnson",
+      submittedAt: new Date("2024-01-13"),
+      category: "Beanies",
+    },
+  ];
+
+  // Mock recent activities data
+  const recentActivities: RecentActivity[] = [
+    {
+      id: "activity-1",
+      type: "store_created",
+      description: "New store 'NYC Caps Store' was created",
+      user: "John Doe",
+      timestamp: new Date("2024-01-15T10:30:00"),
+    },
+    {
+      id: "activity-2",
+      type: "order_placed",
+      description: "Order #1234 was placed",
+      user: "Jane Smith",
+      timestamp: new Date("2024-01-15T09:15:00"),
+    },
+    {
+      id: "activity-3",
+      type: "user_registered",
+      description: "New user registered",
+      user: "Bob Wilson",
+      timestamp: new Date("2024-01-15T08:45:00"),
+    },
+    {
+      id: "activity-4",
+      type: "order_placed",
+      description: "Order #1233 was placed",
+      user: "Alice Brown",
+      timestamp: new Date("2024-01-15T08:00:00"),
+    },
+    {
+      id: "activity-5",
+      type: "store_created",
+      description: "New store 'LA Headwear' was created",
+      user: "Charlie Davis",
+      timestamp: new Date("2024-01-14T16:20:00"),
+    },
+  ];
+
+  // Mock top stores data
+  const topStores: TopStore[] = [
+    {
+      id: "top-1",
+      name: "NYC Caps Store",
+      revenue: 15000,
+      orders: 120,
+      growth: 15.5,
+    },
+    {
+      id: "top-2",
+      name: "LA Headwear",
+      revenue: 12000,
+      orders: 95,
+      growth: 8.2,
+    },
+    {
+      id: "top-3",
+      name: "London Caps",
+      revenue: 9800,
+      orders: 78,
+      growth: 12.1,
+    },
+    {
+      id: "top-4",
+      name: "Tokyo Hats",
+      revenue: 8500,
+      orders: 65,
+      growth: 5.3,
+    },
+    {
+      id: "top-5",
+      name: "Sydney Caps",
+      revenue: 7200,
+      orders: 58,
+      growth: 9.8,
+    },
+  ];
+
   return {
     summaryCards,
     revenueTrend,
     categoryDistribution,
     orderStatus,
     storeLocations,
+    pendingStores,
+    recentActivities,
+    topStores,
   };
 }
 

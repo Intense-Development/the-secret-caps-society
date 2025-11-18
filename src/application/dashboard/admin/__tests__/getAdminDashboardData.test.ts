@@ -83,5 +83,50 @@ describe("getAdminDashboardData", () => {
     expect(firstStore).toHaveProperty("lat");
     expect(firstStore).toHaveProperty("lng");
   });
+
+  it("returns pending stores data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.pendingStores).toBeDefined();
+    expect(Array.isArray(data.pendingStores)).toBe(true);
+    expect(data.pendingStores.length).toBeGreaterThan(0);
+
+    const firstPending = data.pendingStores[0];
+    expect(firstPending).toHaveProperty("id");
+    expect(firstPending).toHaveProperty("name");
+    expect(firstPending).toHaveProperty("owner");
+    expect(firstPending).toHaveProperty("submittedAt");
+    expect(firstPending).toHaveProperty("category");
+  });
+
+  it("returns recent activities data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.recentActivities).toBeDefined();
+    expect(Array.isArray(data.recentActivities)).toBe(true);
+    expect(data.recentActivities.length).toBeGreaterThan(0);
+
+    const firstActivity = data.recentActivities[0];
+    expect(firstActivity).toHaveProperty("id");
+    expect(firstActivity).toHaveProperty("type");
+    expect(firstActivity).toHaveProperty("description");
+    expect(firstActivity).toHaveProperty("user");
+    expect(firstActivity).toHaveProperty("timestamp");
+  });
+
+  it("returns top stores data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.topStores).toBeDefined();
+    expect(Array.isArray(data.topStores)).toBe(true);
+    expect(data.topStores.length).toBeGreaterThan(0);
+
+    const firstTopStore = data.topStores[0];
+    expect(firstTopStore).toHaveProperty("id");
+    expect(firstTopStore).toHaveProperty("name");
+    expect(firstTopStore).toHaveProperty("revenue");
+    expect(firstTopStore).toHaveProperty("orders");
+    expect(firstTopStore).toHaveProperty("growth");
+  });
 });
 
