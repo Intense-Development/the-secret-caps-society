@@ -12,7 +12,13 @@ import { StoreLocationsMap } from "./StoreLocationsMap";
 import { PendingStoresList } from "./PendingStoresList";
 import { RecentActivityList } from "./RecentActivityList";
 import { TopStoresList } from "./TopStoresList";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import type { AdminDashboardData } from "@/application/dashboard/admin/getAdminDashboardData";
 
@@ -24,7 +30,9 @@ interface AdminDashboardClientProps {
  * Client component for Admin Dashboard with realtime updates
  * Handles realtime subscriptions and updates the dashboard when data changes
  */
-export function AdminDashboardClient({ initialData }: AdminDashboardClientProps) {
+export function AdminDashboardClient({
+  initialData,
+}: AdminDashboardClientProps) {
   const t = useTranslations("admin.dashboard");
   const router = useRouter();
   const [dashboardData] = useState(initialData);
@@ -41,7 +49,9 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
         if (store && store.verification_status) {
           // If a store was approved/rejected, refresh the dashboard
           toast.info(t("storeStatusUpdated"), {
-            description: t("storeStatusUpdatedDesc", { name: store.name }),
+            description: t("storeStatusUpdatedDesc", {
+              name: String(store.name),
+            }),
           });
           router.refresh();
         }
@@ -124,7 +134,9 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
             <CardDescription>{t("categoryDistributionDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <CategoryDistributionChart data={dashboardData.categoryDistribution} />
+            <CategoryDistributionChart
+              data={dashboardData.categoryDistribution}
+            />
           </CardContent>
         </Card>
 
@@ -171,4 +183,3 @@ export function AdminDashboardClient({ initialData }: AdminDashboardClientProps)
     </div>
   );
 }
-
