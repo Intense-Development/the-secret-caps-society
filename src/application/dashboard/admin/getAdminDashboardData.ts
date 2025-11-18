@@ -1,8 +1,15 @@
 import type { SummaryCard } from "@/components/dashboard/SummaryCards";
+import type { RevenueTrendData } from "@/components/dashboard/admin/RevenueTrendChart";
+import type { CategoryDistributionData } from "@/components/dashboard/admin/CategoryDistributionChart";
+import type { OrderStatusData } from "@/components/dashboard/admin/OrderStatusChart";
+import type { StoreLocation } from "@/components/dashboard/admin/StoreLocationsMap";
 
 export type AdminDashboardData = {
   summaryCards: SummaryCard[];
-  // TODO: Add more data types as we implement charts and lists
+  revenueTrend: RevenueTrendData[];
+  categoryDistribution: CategoryDistributionData[];
+  orderStatus: OrderStatusData[];
+  storeLocations: StoreLocation[];
 };
 
 /**
@@ -46,8 +53,50 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     },
   ];
 
+  // Mock revenue trend data (last 6 months)
+  const revenueTrend: RevenueTrendData[] = [
+    { month: "Jul", revenue: 42000, target: 45000 },
+    { month: "Aug", revenue: 48000, target: 47000 },
+    { month: "Sep", revenue: 51000, target: 50000 },
+    { month: "Oct", revenue: 49000, target: 52000 },
+    { month: "Nov", revenue: 55000, target: 55000 },
+    { month: "Dec", revenue: 55450, target: 58000 },
+  ];
+
+  // Mock category distribution data
+  const categoryDistribution: CategoryDistributionData[] = [
+    { name: "Baseball Caps", value: 1245 },
+    { name: "Snapbacks", value: 892 },
+    { name: "Beanies", value: 456 },
+    { name: "Bucket Hats", value: 234 },
+    { name: "Visors", value: 178 },
+    { name: "Other", value: 89 },
+  ];
+
+  // Mock order status data
+  const orderStatus: OrderStatusData[] = [
+    { status: "Pending", count: 25 },
+    { status: "Processing", count: 40 },
+    { status: "Shipped", count: 60 },
+    { status: "Delivered", count: 120 },
+    { status: "Cancelled", count: 5 },
+  ];
+
+  // Mock store locations data
+  const storeLocations: StoreLocation[] = [
+    { id: "1", name: "NYC Caps Store", lat: 40.7128, lng: -74.006 },
+    { id: "2", name: "LA Headwear", lat: 34.0522, lng: -118.2437 },
+    { id: "3", name: "London Caps", lat: 51.5074, lng: -0.1278 },
+    { id: "4", name: "Tokyo Hats", lat: 35.6762, lng: 139.6503 },
+    { id: "5", name: "Sydney Caps", lat: -33.8688, lng: 151.2093 },
+  ];
+
   return {
     summaryCards,
+    revenueTrend,
+    categoryDistribution,
+    orderStatus,
+    storeLocations,
   };
 }
 

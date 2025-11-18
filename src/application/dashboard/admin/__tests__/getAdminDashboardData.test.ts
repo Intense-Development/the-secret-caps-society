@@ -33,5 +33,55 @@ describe("getAdminDashboardData", () => {
     expect(cardIds).toContain("pending-approvals");
     expect(cardIds).toContain("total-users");
   });
+
+  it("returns revenue trend data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.revenueTrend).toBeDefined();
+    expect(Array.isArray(data.revenueTrend)).toBe(true);
+    expect(data.revenueTrend.length).toBeGreaterThan(0);
+
+    const firstTrend = data.revenueTrend[0];
+    expect(firstTrend).toHaveProperty("month");
+    expect(firstTrend).toHaveProperty("revenue");
+  });
+
+  it("returns category distribution data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.categoryDistribution).toBeDefined();
+    expect(Array.isArray(data.categoryDistribution)).toBe(true);
+    expect(data.categoryDistribution.length).toBeGreaterThan(0);
+
+    const firstCategory = data.categoryDistribution[0];
+    expect(firstCategory).toHaveProperty("name");
+    expect(firstCategory).toHaveProperty("value");
+  });
+
+  it("returns order status data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.orderStatus).toBeDefined();
+    expect(Array.isArray(data.orderStatus)).toBe(true);
+    expect(data.orderStatus.length).toBeGreaterThan(0);
+
+    const firstStatus = data.orderStatus[0];
+    expect(firstStatus).toHaveProperty("status");
+    expect(firstStatus).toHaveProperty("count");
+  });
+
+  it("returns store locations data", async () => {
+    const data = await getAdminDashboardData();
+
+    expect(data.storeLocations).toBeDefined();
+    expect(Array.isArray(data.storeLocations)).toBe(true);
+    expect(data.storeLocations.length).toBeGreaterThan(0);
+
+    const firstStore = data.storeLocations[0];
+    expect(firstStore).toHaveProperty("id");
+    expect(firstStore).toHaveProperty("name");
+    expect(firstStore).toHaveProperty("lat");
+    expect(firstStore).toHaveProperty("lng");
+  });
 });
 
