@@ -1,313 +1,251 @@
-# Feature: Implement Seller and Buyer Dashboards
+# [Feature] Implement Logout Endpoint
 
 ## Problem Statement
 
-Currently, the dashboard at `/dashboard` uses a single shared view for all user roles (buyer, seller, admin) with conditional rendering based on a `showInventory` flag. All dashboard data is mocked (`src/data/dashboardData.ts`), which means users don't see their actual purchase history, sales metrics, or real-time data.
+Currently, users can log in to the application via `/api/auth/login`, but there is **no logout functionality**. This creates several issues:
+
+1. **No way to terminate sessions**: Users cannot properly log out, leaving their sessions active indefinitely
+2. **Security risk**: Active sessions remain valid even when users want to end them
+3. **Poor UX**: Users expect a logout option in authenticated interfaces (Navbar, Dashboard)
+4. **Session management gap**: The login endpoint sets cookies (`sb-remember-me` and Supabase auth cookies), but there's no corresponding cleanup mechanism
+5. **Incomplete auth flow**: Authentication is only half-implemented without logout capability
 
 **Current Limitations:**
-- All dashboard data is mocked, showing the same fake data for all users
-- Buyers and sellers see similar views with only minor differences
-- No real database queries for orders, revenue, or inventory metrics
-- No role-specific sections (e.g., buyers can't see their order history, sellers can't see their sales)
-- Poor user experience - users can't track their actual activity or performance
+- No `/api/auth/logout` endpoint exists
+- No client-side logout hook or functionality
+- No logout button in UI components
+- Session cookies persist indefinitely
+- No way to clear Supabase session server-side
 
 ## User Value
 
-### For Buyers:
-- **See their real purchase history** - View actual orders with status, dates, and amounts
-- **Track spending** - See lifetime total spent and spending trends over time
-- **Monitor order status** - Check pending, processing, and completed orders
-- **Personalized insights** - Get recommendations based on their actual purchase history
+Implementing logout will provide users with:
 
-**Example**: A buyer logs in and immediately sees "You've placed 5 orders totaling $450" with a list of their recent orders, instead of seeing generic mock data.
+1. **Security Control**: Users can securely end their sessions when done, especially on shared devices
+   - Example: A user logs in at a public computer, completes their purchase, and can now safely log out
 
-### For Sellers:
-- **View actual sales metrics** - See real revenue (7-day and 30-day totals) from their stores
-- **Monitor inventory** - Get alerts for low stock items based on actual product counts
-- **Track orders** - See pending orders that need fulfillment from their stores
-- **Manage products** - Quick access to product listings with real counts
+2. **Session Management**: Clear indication of authentication state and ability to switch accounts
+   - Example: A seller wants to log out and log in with their buyer account to make a purchase
 
-**Example**: A seller logs in and sees "Revenue: $1,250 (7 days)" with their actual sales, a list of 3 pending orders to fulfill, and 5 products running low on stock.
+3. **Privacy Protection**: Users can ensure their session is terminated when they're finished
+   - Example: After managing their store, a seller can log out to prevent unauthorized access
 
-### Performance Benefits:
-- Dashboard loads in < 2 seconds with server-side caching
-- Real-time data updates every 60 seconds for buyers/sellers
-- Better user experience with actual, actionable information
+4. **Better UX**: Standard authentication flow that users expect from modern web applications
+   - Example: Users see a logout button in the Navbar and can easily end their session
 
-## Technical Approach
-
-### Architecture: Hybrid Approach
-- Keep single route `/dashboard` with role-based component rendering
-- Extract role-specific sections to separate components:
-  - `BuyerDashboard.tsx` - Buyer-specific sections
-  - `SellerDashboard.tsx` - Seller-specific sections
-  - Shared layout (Navbar, Footer, container) maintained
-
-### Data Integration: Incremental Real Data
-- **Phase 1**: Real database queries for summary cards (orders, revenue, inventory)
-- **Phase 2**: Charts use mock data initially (migrate to real data later)
-- Incremental approach allows faster development and easier testing
-
-### Performance Optimization:
-- Server-side caching with Next.js `unstable_cache` (60s buyer/seller)
-- Parallel data fetching where possible
-- Minimal initial data load (summary cards only)
-
-## Implementation Plan
-
-### Phase 1: Architecture Setup
-- [ ] Refactor `src/app/[locale]/dashboard/page.tsx` to render role-specific components
-- [ ] Create `src/components/dashboard/buyer/BuyerDashboard.tsx`
-- [ ] Create `src/components/dashboard/seller/SellerDashboard.tsx`
-
-### Phase 2: Buyer Dashboard
-- [ ] Create `src/application/dashboard/buyer/getBuyerDashboardData.ts` with real queries
-- [ ] Implement summary cards with real data:
-  - Total orders count
-  - Total spent (lifetime, completed orders)
-  - Recent order date
-  - Pending orders count
-- [ ] Create `BuyerOrderHistory.tsx` component with real order data
-- [ ] Add i18n translation keys for buyer dashboard
-
-### Phase 3: Seller Dashboard
-- [ ] Create `src/application/dashboard/seller/getSellerDashboardData.ts` with real queries
-- [ ] Implement summary cards with real data:
-  - Total revenue (7 days, 30 days) from seller's stores
-  - Orders fulfilled count
-  - Products listed count
-  - Low stock alerts count
-- [ ] Create `SellerOrderList.tsx` component with pending orders
-- [ ] Create `SellerLowStockAlerts.tsx` component
-- [ ] Add i18n translation keys for seller dashboard
-
-### Phase 4: Caching & Performance
-- [ ] Implement Next.js caching for all data services
-- [ ] Verify load time < 2 seconds
-- [ ] Add error handling and empty states
-
-### Phase 5: Testing
-- [ ] Write unit tests for data services (`getBuyerDashboardData.test.ts`, `getSellerDashboardData.test.ts`)
-- [ ] Write component tests for dashboards
-- [ ] Write E2E tests for dashboard flows (`e2e/dashboard.spec.ts`)
+5. **Cart Preservation**: Cart data is preserved after logout, allowing guest checkout
+   - Example: User adds items to cart, logs out, and can still checkout as a guest
 
 ## Definition of Done
 
-- [ ] **Implementation complete** with edge cases handled:
-  - Buyer dashboard shows real order data from database
-  - Seller dashboard shows real revenue and inventory from database
-  - Role-based component rendering works correctly
-  - Empty states displayed when no data available
-  - Error handling for database failures
+- [ ] **Backend API Route** (`/api/auth/logout`) implemented
+  - POST endpoint that clears Supabase session
+  - Clears all Supabase auth cookies
+  - Clears `sb-remember-me` cookie
+  - Idempotent (safe to call multiple times)
+  - Graceful error handling (always returns success from user perspective)
 
-- [ ] **Unit tests added** (>80% coverage):
-  - Data service functions tested with mocked Supabase client
-  - Summary card calculations verified
-  - Caching behavior validated
-  - Error handling scenarios covered
+- [ ] **Client-Side Logout Hook** (`useLogout`) implemented
+  - Handles API call and client-side Supabase signOut
+  - Loading state management
+  - Graceful degradation (works even if API fails)
+  - Analytics event tracking
+  - Does NOT clear cart (preserved for guest checkout)
 
-- [ ] **Integration tests** for main flows:
-  - Test dashboard data fetching with mocked database
-  - Test role detection and component rendering
-  - Test permission boundaries
+- [ ] **Confirmation Dialog** component created
+  - Uses shadcn/ui AlertDialog
+  - Warns about unsaved changes if detected
+  - Loading state during logout
+  - i18n support
 
-- [ ] **E2E tests** written:
-  - Buyer login → dashboard → view orders flow
-  - Seller login → dashboard → view sales flow
-  - Verify load time < 2 seconds in E2E tests
-  - Test empty states and error scenarios
+- [ ] **Unsaved Changes Detection** hook implemented
+  - Detects form dirty state
+  - Warns before page unload
+  - Integrates with logout confirmation
 
-- [ ] **Documentation updated**:
-  - JSDoc comments for all data service functions
-  - Component prop documentation
-  - Translation keys added to `messages/en.json`, `messages/es.json`, `messages/ar.json`
+- [ ] **UI Integration** complete
+  - Logout button in Navbar (desktop + mobile menu)
+  - Logout button in Dashboard
+  - Loading indicators
+  - Accessibility support (ARIA labels)
 
-- [ ] **Code review approved**:
-  - Follows Clean Architecture principles
+- [ ] **Analytics Tracking** implemented
+  - Logout event tracking
+  - Success/failure tracking
+  - Extensible for future analytics providers
+
+- [ ] **Unit Tests** (>80% coverage)
+  - API route tests (`src/__tests__/api/auth/logout.test.ts`)
+  - Hook tests (`src/__tests__/hooks/useLogout.test.ts`)
+  - Unsaved changes hook tests
+  - Dialog component tests
+  - Navbar logout integration tests
+
+- [ ] **E2E Tests** for main flows
+  - Successful logout and redirect
+  - Cookie clearing verification
+  - Logout button visibility based on auth state
+  - Confirmation dialog flow
+
+- [ ] **i18n Support** added
+  - Translations in `messages/en.json`, `messages/es.json`, `messages/ar.json`
+  - All user-facing strings translated
+
+- [ ] **Documentation** updated
+  - API documentation updated (README.md)
+  - Code comments for complex logic
+  - Session file updated with implementation status
+
+- [ ] **Code Review** approved
+  - Follows TDD approach
+  - Matches existing code patterns
+  - No linter errors
   - TypeScript strict mode compliance
-  - RLS policies verified for data access
 
-- [ ] **CI/CD passes**:
-  - All tests passing
-  - No linting errors
-  - TypeScript compilation successful
+- [ ] **CI/CD** passes
+  - All tests pass
+  - Build succeeds
+  - No type errors
 
-- [ ] **Manual testing complete** (see checklist below)
+- [ ] **Manual Testing** complete (see checklist below)
 
 ## Manual Testing Checklist
 
-### Basic Flow Testing
+### Basic Flow
+- [ ] **Login then Logout**: 
+  1. Log in with valid credentials
+  2. Verify user is authenticated (Navbar shows dashboard button)
+  3. Click logout button in Navbar
+  4. Confirm dialog appears
+  5. Click "Log Out" in dialog
+  6. Verify redirect to home page
+  7. Verify Navbar shows login/signup buttons
+  8. Verify cannot access `/dashboard` (redirects to login)
 
-#### Buyer Dashboard:
-1. **Login as buyer user**
-   - Navigate to `/dashboard`
-   - Verify buyer-specific dashboard renders
-   - Verify welcome message shows buyer name
+- [ ] **Logout from Dashboard**:
+  1. Log in and navigate to dashboard
+  2. Click logout button (if present)
+  3. Verify logout flow works correctly
+  4. Verify redirect to home page
 
-2. **Summary Cards (Real Data)**
-   - Verify "Orders placed" shows actual count from database
-   - Verify "Total spent" shows sum of completed orders
-   - Verify "Recent order" shows most recent order date
-   - Verify "Pending orders" shows count of pending/processing orders
-
-3. **Order History Section**
-   - Verify list of recent orders displays
-   - Verify each order shows: status, date, total amount
-   - Verify orders are sorted by most recent first
-   - Verify "View all orders" link works (if implemented)
-
-4. **Performance**
-   - Verify dashboard loads in < 2 seconds
-   - Verify data is cached (refresh shows same data for 60s)
-   - Verify no console errors
-
-#### Seller Dashboard:
-1. **Login as seller user**
-   - Navigate to `/dashboard`
-   - Verify seller-specific dashboard renders
-   - Verify welcome message shows seller name
-
-2. **Summary Cards (Real Data)**
-   - Verify "Revenue (7 days)" shows actual revenue from seller's stores
-   - Verify "Orders fulfilled" shows count of completed orders
-   - Verify "Products listed" shows actual product count
-   - Verify "Low stock alerts" shows count of products with stock < 10
-
-3. **Order Management Section**
-   - Verify pending orders list displays
-   - Verify orders show product details and buyer information
-   - Verify order status is visible
-   - Verify "View all orders" link works (if implemented)
-
-4. **Low Stock Alerts**
-   - Verify low stock products are listed
-   - Verify stock counts are accurate
-   - Verify alerts are sorted by urgency (lowest stock first)
-
-5. **Performance**
-   - Verify dashboard loads in < 2 seconds
-   - Verify data is cached (refresh shows same data for 60s)
-   - Verify no console errors
+- [ ] **Mobile Menu Logout**:
+  1. Log in on mobile viewport
+  2. Open mobile menu
+  3. Click logout button
+  4. Verify confirmation dialog appears
+  5. Complete logout flow
+  6. Verify redirect works
 
 ### Edge Case Testing
+- [ ] **Logout when already logged out**:
+  1. Try to access logout endpoint directly when not authenticated
+  2. Verify idempotent behavior (no errors)
 
-1. **No Data Scenarios**
-   - Test buyer with no orders → verify empty state message
-   - Test seller with no products → verify empty state message
-   - Test seller with no orders → verify empty orders section
+- [ ] **Multiple rapid logout clicks**:
+  1. Click logout button multiple times quickly
+  2. Verify only one logout request is processed
+  3. Verify loading state prevents duplicate calls
 
-2. **Role Switching**
-   - Test user with role change → verify correct dashboard renders
-   - Test fallback to default role (buyer) if role not found
+- [ ] **Logout with unsaved changes**:
+  1. Navigate to a form (e.g., dashboard settings)
+  2. Make changes without saving
+  3. Click logout
+  4. Verify warning about unsaved changes appears in dialog
+  5. Verify logout still works after confirmation
 
-3. **Database Errors**
-   - Simulate database connection failure → verify error message displayed
-   - Simulate RLS policy blocking → verify appropriate error handling
+- [ ] **Network failure during logout**:
+  1. Disable network (devtools → Network → Offline)
+  2. Click logout
+  3. Verify client-side session is still cleared
+  4. Verify user is redirected (graceful degradation)
 
-4. **Caching Behavior**
-   - Verify data refreshes after cache expiry (60s)
-   - Verify manual refresh clears cache (if implemented)
+- [ ] **Cart preservation**:
+  1. Add items to cart
+  2. Log out
+  3. Verify cart items are still present
+  4. Verify can proceed to checkout as guest
 
-### Error Handling Testing
+### Error Handling
+- [ ] **API error handling**:
+  1. Mock API to return error
+  2. Attempt logout
+  3. Verify client-side session is still cleared
+  4. Verify user sees success message (not error)
 
-1. **Network Errors**
-   - Disconnect network → verify error message
-   - Reconnect → verify data loads correctly
+- [ ] **Supabase error handling**:
+  1. Mock Supabase signOut to fail
+  2. Attempt logout
+  3. Verify cookies are still cleared
+  4. Verify user can proceed
 
-2. **Authentication Errors**
-   - Expired session → verify redirect to login
-   - Invalid token → verify redirect to login
+### Integration
+- [ ] **Middleware integration**:
+  1. Log out
+  2. Try to access protected route
+  3. Verify middleware redirects to login
 
-3. **Missing Data**
-   - Missing user profile → verify default role assignment
-   - Missing store data → verify seller dashboard handles gracefully
+- [ ] **Analytics tracking**:
+  1. Log out successfully
+  2. Verify logout event is tracked
+  3. Log out with API failure
+  4. Verify failure event is tracked
 
-### Integration Testing
+- [ ] **Locale preservation**:
+  1. Log in on `/es/dashboard`
+  2. Log out
+  3. Verify redirect preserves locale (or redirects to `/es`)
 
-1. **With Existing Features**
-   - Test dashboard with active cart → verify cart indicator works
-   - Test dashboard with unread notifications → verify notifications display
-   - Test dashboard after placing order → verify order appears immediately (after cache refresh)
+- [ ] **Session cookie verification**:
+  1. Log in and check cookies in devtools
+  2. Log out
+  3. Verify all Supabase cookies are deleted
+  4. Verify `sb-remember-me` cookie is deleted
 
-2. **i18n Integration**
-   - Test buyer dashboard in English → verify all labels translate
-   - Test seller dashboard in Spanish → verify all labels translate
-   - Test dashboard in Arabic → verify RTL layout works
+## Technical Details
 
-3. **Responsive Design**
-   - Test buyer dashboard on mobile → verify responsive layout
-   - Test seller dashboard on tablet → verify cards stack correctly
-   - Test dashboard on desktop → verify optimal layout
+### Files to Create
+1. `src/app/api/auth/logout/route.ts` - Logout API endpoint
+2. `src/__tests__/api/auth/logout.test.ts` - API route tests
+3. `src/hooks/useLogout.ts` - Logout hook with confirmation
+4. `src/hooks/useUnsavedChanges.ts` - Unsaved changes detection hook
+5. `src/__tests__/hooks/useLogout.test.ts` - Hook tests
+6. `src/__tests__/hooks/useUnsavedChanges.test.ts` - Unsaved changes hook tests
+7. `src/components/auth/LogoutConfirmDialog.tsx` - Logout confirmation dialog
+8. `src/components/__tests__/auth/LogoutConfirmDialog.test.tsx` - Dialog component tests
+9. `src/components/__tests__/Navbar.logout.test.tsx` - Navbar logout tests
+10. `src/lib/analytics.ts` - Analytics tracking utility
+11. `e2e/logout.spec.ts` - E2E tests
 
-## Database Queries Required
+### Files to Modify
+1. `src/components/Navbar.tsx` - Add logout button
+2. `messages/en.json` - Add logout translations
+3. `messages/es.json` - Add logout translations
+4. `messages/ar.json` - Add logout translations
+5. `src/app/[locale]/dashboard/page.tsx` - Add logout button (optional)
 
-### Buyer Dashboard Queries:
-```sql
--- Total orders count
-SELECT COUNT(*) FROM orders WHERE buyer_id = :userId
+### Implementation Approach
+- **TDD**: Write tests first, then implement
+- **Pattern**: Follow existing login route pattern (`src/app/api/auth/login/route.ts`)
+- **Cookie Management**: Use same cookie handling as login (via `@supabase/ssr`)
+- **Error Handling**: Always return success to client (graceful degradation)
+- **Idempotency**: Logout should be safe to call multiple times
 
--- Total spent (completed orders)
-SELECT SUM(total_amount) FROM orders 
-WHERE buyer_id = :userId AND status = 'completed'
+### Key Requirements
+- ✅ Logout must be idempotent
+- ✅ Must clear all Supabase session cookies
+- ✅ Must clear `sb-remember-me` cookie
+- ✅ Must NOT clear cart data (preserve for guest checkout)
+- ✅ Must show confirmation dialog before logout
+- ✅ Must warn about unsaved changes if detected
+- ✅ Must track logout events for analytics
+- ✅ Must show loading state during logout
+- ✅ Must work even if API fails (graceful degradation)
+- ✅ Must preserve locale in redirects
 
--- Recent order date
-SELECT MAX(created_at) FROM orders WHERE buyer_id = :userId
+### Estimated Effort
+**10-14 hours (1.5-2 days)**
 
--- Pending orders count
-SELECT COUNT(*) FROM orders 
-WHERE buyer_id = :userId AND status IN ('pending', 'processing')
-
--- Recent orders list
-SELECT * FROM orders 
-WHERE buyer_id = :userId 
-ORDER BY created_at DESC 
-LIMIT 10
-```
-
-### Seller Dashboard Queries:
-```sql
--- Get seller's stores
-SELECT id FROM stores WHERE owner_id = :userId
-
--- Total revenue (7 days)
-SELECT SUM(oi.price * oi.quantity) 
-FROM order_items oi
-JOIN products p ON oi.product_id = p.id
-JOIN stores s ON p.store_id = s.id
-WHERE s.owner_id = :userId
-AND oi.created_at >= NOW() - INTERVAL '7 days'
-
--- Orders fulfilled count
-SELECT COUNT(DISTINCT o.id)
-FROM orders o
-JOIN order_items oi ON o.id = oi.order_id
-JOIN products p ON oi.product_id = p.id
-JOIN stores s ON p.store_id = s.id
-WHERE s.owner_id = :userId AND o.status = 'completed'
-
--- Products listed count
-SELECT COUNT(*) FROM products 
-WHERE store_id IN (SELECT id FROM stores WHERE owner_id = :userId)
-
--- Low stock alerts
-SELECT * FROM products 
-WHERE store_id IN (SELECT id FROM stores WHERE owner_id = :userId)
-AND stock < 10
-ORDER BY stock ASC
-```
-
-## Related Files
-
-- `src/app/[locale]/dashboard/page.tsx` - Dashboard page (to be refactored)
-- `src/application/dashboard/getDashboardData.ts` - Current data service (to be refactored)
-- `src/components/dashboard/SummaryCards.tsx` - Summary cards component (existing)
-- `src/data/dashboardData.ts` - Mock data (will keep for charts initially)
-- `src/infrastructure/database/migrations/002_complete_schema.sql` - Database schema (already exists)
-
-## Notes
-
-- Charts will use mock data initially (Phase 2 will migrate to real data)
-- Admin dashboard implementation is out of scope for this issue (separate issue)
-- Buyer additional features (social, price tracking, loyalty) are out of scope (future issue)
-- RLS policies are already configured and should allow proper data access
-
+### Related Context
+- Planning document: `.cursor/sessions/context_session_logout_session_function.md`
+- Existing login implementation: `src/app/api/auth/login/route.ts`
+- Supabase client setup: `src/lib/supabase/server.ts` and `src/lib/supabase/client.ts`
