@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useLogout } from "@/hooks/useLogout";
 import { AdminSearch } from "./AdminSearch";
+import { RealtimeIndicator } from "./RealtimeIndicator";
 
 export function AdminHeader() {
   const t = useTranslations("admin.header");
@@ -53,6 +54,7 @@ export function AdminHeader() {
         </div>
 
         <div className="flex items-center gap-2">
+          <RealtimeIndicator />
           <Button variant="ghost" size="icon" title={t("notifications")}>
             <Bell className="h-5 w-5" />
             <span className="sr-only">{t("notifications")}</span>
