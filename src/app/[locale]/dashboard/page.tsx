@@ -41,6 +41,12 @@ export default async function DashboardPage() {
     "there";
   const firstName = greetingName.split(" ")[0] ?? greetingName;
 
+  // Admin dashboard has its own layout (sidebar + header)
+  if (role === "admin") {
+    return <AdminDashboard />;
+  }
+
+  // Buyer and Seller dashboards use the standard layout (Navbar + Footer)
   return (
     <div className="min-h-screen flex flex-col bg-muted/10">
       <Navbar />
@@ -66,7 +72,6 @@ export default async function DashboardPage() {
           {/* Role-based component rendering */}
           {role === "buyer" && <BuyerDashboard userId={user.id} />}
           {role === "seller" && <SellerDashboard userId={user.id} />}
-          {role === "admin" && <AdminDashboard />}
         </div>
       </main>
 

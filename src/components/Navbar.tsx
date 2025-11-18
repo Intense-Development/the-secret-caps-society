@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing-config";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, User, LayoutDashboard } from "lucide-react";
+import { Menu, X, Search, User, LayoutDashboard, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import CartIndicator from "@/components/CartIndicator";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
+import { LogoutConfirmDialog } from "@/components/auth/LogoutConfirmDialog";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 export const Navbar = () => {
   const t = useTranslations("nav");
@@ -16,6 +18,11 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  
+  // For now, we don't track unsaved changes in Navbar
+  // This can be enhanced later if needed
+  const { hasUnsavedChanges } = useUnsavedChanges(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,12 +122,24 @@ export const Navbar = () => {
             {/* Conditional Auth Button */}
             {!isLoading &&
               (isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button variant="default" size="sm" className="h-9">
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    {t("dashboard")}
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="default" size="sm" className="h-9">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      {t("dashboard")}
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9"
+                    onClick={() => setIsLogoutDialogOpen(true)}
+                    aria-label={t("logout")}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t("logout")}
                   </Button>
-                </Link>
+                </>
               ) : (
                 <>
                   <Link href="/login" className="flex items-center text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
@@ -194,16 +213,29 @@ export const Navbar = () => {
               {/* Conditional Auth Button - Mobile */}
               {!isLoading &&
                 (isAuthenticated ? (
-                  <Link href="/dashboard" className="flex-1">
+                  <>
+                    <Link href="/dashboard" className="flex-1">
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        {t("dashboard")}
+                      </Button>
+                    </Link>
                     <Button
-                      variant="default"
+                      variant="outline"
                       className="w-full"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={() => {
+                        setIsLogoutDialogOpen(true);
+                        setIsMobileMenuOpen(false);
+                      }}
                     >
-                      <LayoutDashboard className="h-4 w-4 mr-2" />
-                      {t("dashboard")}
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {t("logout")}
                     </Button>
-                  </Link>
+                  </>
                 ) : (
                   <Link href="/register" className="flex-1">
                     <Button
@@ -220,6 +252,13 @@ export const Navbar = () => {
           </div>
         </div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutConfirmDialog
+        open={isLogoutDialogOpen}
+        onOpenChange={setIsLogoutDialogOpen}
+        hasUnsavedChanges={hasUnsavedChanges}
+      />
     </header>
   );
 };
