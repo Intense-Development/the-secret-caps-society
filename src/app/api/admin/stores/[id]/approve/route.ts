@@ -7,10 +7,10 @@ import { createServerClient } from "@supabase/ssr";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const storeId = params.id;
+    const { id: storeId } = await params;
 
     if (!storeId) {
       return NextResponse.json(
