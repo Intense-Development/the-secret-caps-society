@@ -55,6 +55,24 @@
       "cancel": "Cancel",
       "loggingOut": "Logging out..."
     }
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "stores": "Stores",
+      "products": "Products",
+      "orders": "Orders",
+      "users": "Users",
+      "analytics": "Analytics",
+      "payments": "Payments",
+      "settings": "Settings"
+    },
+    "header": {
+      "search": "Search...",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "logout": "Log Out"
+    }
   }
 }
 

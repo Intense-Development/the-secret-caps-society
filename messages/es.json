@@ -55,6 +55,24 @@
       "cancel": "Cancelar",
       "loggingOut": "Cerrando sesión..."
     }
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "Panel",
+      "stores": "Tiendas",
+      "products": "Productos",
+      "orders": "Pedidos",
+      "users": "Usuarios",
+      "analytics": "Analíticas",
+      "payments": "Pagos",
+      "settings": "Configuración"
+    },
+    "header": {
+      "search": "Buscar...",
+      "notifications": "Notificaciones",
+      "profile": "Perfil",
+      "logout": "Cerrar Sesión"
+    }
   }
 }
 

@@ -55,6 +55,24 @@
       "cancel": "إلغاء",
       "loggingOut": "جاري تسجيل الخروج..."
     }
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "لوحة التحكم",
+      "stores": "المتاجر",
+      "products": "المنتجات",
+      "orders": "الطلبات",
+      "users": "المستخدمون",
+      "analytics": "التحليلات",
+      "payments": "المدفوعات",
+      "settings": "الإعدادات"
+    },
+    "header": {
+      "search": "بحث...",
+      "notifications": "الإشعارات",
+      "profile": "الملف الشخصي",
+      "logout": "تسجيل الخروج"
+    }
   }
 }
 
