@@ -30,7 +30,10 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   "Chicago,IL": { lat: 41.8781, lng: -87.6298 },
 };
 
-function getCityCoordinates(city: string, state: string): { lat: number; lng: number } | null {
+function getCityCoordinates(
+  city: string,
+  state: string
+): { lat: number; lng: number } | null {
   const key = `${city},${state}`;
   return CITY_COORDINATES[key] || null;
 }
@@ -60,10 +63,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       topStoresResult,
     ] = await Promise.all([
       // Total Revenue: Sum of completed orders
-      supabase
-        .from("orders")
-        .select("total_amount")
-        .eq("status", "completed"),
+      supabase.from("orders").select("total_amount").eq("status", "completed"),
 
       // Active Stores: Count of verified stores
       supabase
@@ -89,10 +89,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         .order("created_at", { ascending: true }),
 
       // Category Distribution: Count products by category
-      supabase
-        .from("products")
-        .select("category")
-        .not("category", "is", null),
+      supabase.from("products").select("category").not("category", "is", null),
 
       // Order Status: Count orders by status
       supabase.from("orders").select("status"),
@@ -171,8 +168,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
     // Calculate summary cards
     const totalRevenue =
-      totalRevenueResult.data?.reduce((sum, order) => sum + Number(order.total_amount || 0), 0) ||
-      0;
+      totalRevenueResult.data?.reduce(
+        (sum, order) => sum + Number(order.total_amount || 0),
+        0
+      ) || 0;
     const activeStores = activeStoresResult.count || 0;
     const pendingApprovals = pendingStoresResult.count || 0;
     const totalUsers = totalUsersResult.count || 0;
@@ -182,19 +181,20 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
     const currentMonthStart = startOfMonth(new Date());
 
-    const [lastMonthRevenueResult, currentMonthRevenueResult] = await Promise.all([
-      supabase
-        .from("orders")
-        .select("total_amount")
-        .eq("status", "completed")
-        .gte("created_at", lastMonthStart.toISOString())
-        .lte("created_at", lastMonthEnd.toISOString()),
-      supabase
-        .from("orders")
-        .select("total_amount")
-        .eq("status", "completed")
-        .gte("created_at", currentMonthStart.toISOString()),
-    ]);
+    const [lastMonthRevenueResult, currentMonthRevenueResult] =
+      await Promise.all([
+        supabase
+          .from("orders")
+          .select("total_amount")
+          .eq("status", "completed")
+          .gte("created_at", lastMonthStart.toISOString())
+          .lte("created_at", lastMonthEnd.toISOString()),
+        supabase
+          .from("orders")
+          .select("total_amount")
+          .eq("status", "completed")
+          .gte("created_at", currentMonthStart.toISOString()),
+      ]);
 
     const lastMonthRevenue =
       lastMonthRevenueResult.data?.reduce(
@@ -250,7 +250,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         id: "active-stores",
         title: "Active Stores",
         value: activeStores.toLocaleString(),
-        changeLabel: newStores >= 0 ? `+${newStores} new stores` : `${newStores} stores`,
+        changeLabel:
+          newStores >= 0 ? `+${newStores} new stores` : `${newStores} stores`,
         trend: newStores >= 0 ? "up" : "down",
         helperText: "Verified stores",
       },
@@ -266,7 +267,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         id: "total-users",
         title: "Total Users",
         value: totalUsers.toLocaleString(),
-        changeLabel: newUsers >= 0 ? `+${newUsers} new signups` : `${newUsers} users`,
+        changeLabel:
+          newUsers >= 0 ? `+${newUsers} new signups` : `${newUsers} users`,
         trend: newUsers >= 0 ? "up" : "down",
         helperText: "Buyers and sellers",
       },
@@ -286,7 +288,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
             const orderDate = new Date(order.created_at);
             return orderDate >= monthStart && orderDate <= monthEnd;
           })
-          .reduce((sum, order) => sum + Number(order.total_amount || 0), 0) || 0;
+          .reduce((sum, order) => sum + Number(order.total_amount || 0), 0) ||
+        0;
 
       revenueTrend.push({
         month: format(monthDate, "MMM"),
@@ -301,7 +304,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       categoryCounts[category] = (categoryCounts[category] || 0) + 1;
     });
 
-    const categoryDistribution: CategoryDistributionData[] = Object.entries(categoryCounts)
+    const categoryDistribution: CategoryDistributionData[] = Object.entries(
+      categoryCounts
+    )
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10); // Top 10 categories
@@ -324,7 +329,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
     const orderStatus: OrderStatusData[] = Object.entries(statusCounts)
       .map(([status, count]) => ({
-        status: statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1),
+        status:
+          statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1),
         count,
       }))
       .sort((a, b) => b.count - a.count);
@@ -375,7 +381,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         user:
           (Array.isArray(store.owner)
             ? (store.owner[0] as { name: string } | null)
-            : (store.owner as { name: string } | null))?.name || "Unknown",
+            : (store.owner as { name: string } | null)
+          )?.name || "Unknown",
         timestamp: new Date(store.created_at),
       });
     });
@@ -410,7 +417,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     });
 
     // Sort activities by timestamp and take top 10
-    recentActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    recentActivities.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+    );
     const topRecentActivities = recentActivities.slice(0, 10);
 
     // Process top stores - get order items for completed orders
@@ -443,16 +452,24 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       > = {};
 
       orderItemsData?.forEach((item) => {
-        const product = item.product as {
-          store_id: string;
-          store: { id: string; name: string };
-        };
+        // Handle product as array (Supabase relationship) or single object
+        const product = Array.isArray(item.product)
+          ? item.product[0]
+          : item.product;
 
-        if (!product?.store) return;
+        if (!product) return;
 
-        const storeId = product.store.id;
-        const storeName = product.store.name;
-        const itemRevenue = Number(item.price || 0) * Number(item.quantity || 0);
+        // Handle store as array (nested Supabase relationship) or single object
+        const productStore = Array.isArray(product.store)
+          ? product.store[0]
+          : product.store;
+
+        if (!productStore) return;
+
+        const storeId = productStore.id;
+        const storeName = productStore.name;
+        const itemRevenue =
+          Number(item.price || 0) * Number(item.quantity || 0);
 
         if (!storeRevenue[storeId]) {
           storeRevenue[storeId] = {
