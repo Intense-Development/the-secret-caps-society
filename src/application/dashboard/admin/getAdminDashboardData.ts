@@ -345,13 +345,23 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
     // Process pending stores
     const pendingStores: PendingStore[] =
-      pendingStoresListResult.data?.map((store) => ({
-        id: store.id,
-        name: store.name,
-        owner: (store.owner as { name: string; email: string })?.name || "Unknown",
-        submittedAt: new Date(store.created_at),
-        category: "General", // We don't have category in stores table
-      })) || [];
+      pendingStoresListResult.data?.map((store) => {
+        // Handle owner as array (Supabase relationship) or single object
+        const ownerData = Array.isArray(store.owner)
+          ? store.owner[0]
+          : store.owner;
+        const ownerName =
+          (ownerData as { name: string; email: string } | null)?.name ||
+          "Unknown";
+
+        return {
+          id: store.id,
+          name: store.name,
+          owner: ownerName,
+          submittedAt: new Date(store.created_at),
+          category: "General", // We don't have category in stores table
+        };
+      }) || [];
 
     // Process recent activities
     const recentActivities: RecentActivity[] = [];
@@ -362,7 +372,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         id: `store-${store.id}`,
         type: "store_created",
         description: `New store '${store.name}' was created`,
-        user: (store.owner as { name: string })?.name || "Unknown",
+        user:
+          (Array.isArray(store.owner)
+            ? (store.owner[0] as { name: string } | null)
+            : (store.owner as { name: string } | null))?.name || "Unknown",
         timestamp: new Date(store.created_at),
       });
     });
