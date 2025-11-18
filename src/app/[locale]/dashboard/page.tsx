@@ -46,7 +46,12 @@ export default async function DashboardPage() {
     return <AdminDashboard />;
   }
 
-  // Buyer and Seller dashboards use the standard layout (Navbar + Footer)
+  // Seller dashboard has its own layout (redirect to seller dashboard)
+  if (role === "seller") {
+    redirect("/dashboard/seller");
+  }
+
+  // Buyer dashboard uses the standard layout (Navbar + Footer)
   return (
     <div className="min-h-screen flex flex-col bg-muted/10">
       <Navbar />
@@ -71,7 +76,6 @@ export default async function DashboardPage() {
 
           {/* Role-based component rendering */}
           {role === "buyer" && <BuyerDashboard userId={user.id} />}
-          {role === "seller" && <SellerDashboard userId={user.id} />}
         </div>
       </main>
 

@@ -154,6 +154,32 @@
       "verificationDocument": "Verification Document",
       "viewDocument": "View Document"
     }
+  },
+  "seller": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "orders": "Orders",
+      "revenue": "Revenue",
+      "shipping": "Shipping",
+      "team": "Team",
+      "settings": "Settings"
+    },
+    "header": {
+      "search": "Search...",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "logout": "Log Out"
+    },
+    "search": {
+      "placeholder": "Search products, orders, customers...",
+      "noResults": "No results found",
+      "loading": "Searching..."
+    },
+    "dashboard": {
+      "title": "Seller Dashboard",
+      "description": "Manage your store and track performance"
+    }
   }
 }
 
