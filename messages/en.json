@@ -6,7 +6,8 @@
     "login": "Login",
     "signUp": "Sign Up",
     "dashboard": "Dashboard",
-    "language": "Change language"
+    "language": "Change language",
+    "logout": "Log Out"
   },
   "hero": {
     "badge": "Exclusive Cap Marketplace",
@@ -44,6 +45,16 @@
     "delete": "Delete",
     "edit": "Edit",
     "search": "Search"
+  },
+  "auth": {
+    "logout": {
+      "title": "Log Out",
+      "description": "Are you sure you want to log out?",
+      "descriptionWithChanges": "You have unsaved changes. Are you sure you want to log out?",
+      "confirm": "Log Out",
+      "cancel": "Cancel",
+      "loggingOut": "Logging out..."
+    }
   }
 }
 
