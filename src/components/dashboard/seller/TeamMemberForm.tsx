@@ -112,7 +112,7 @@ export function TeamMemberForm({
         <DialogHeader>
           <DialogTitle>Edit Team Member</DialogTitle>
           <DialogDescription>
-            Update {member.user?.name || member.user?.email}'s role and
+            Update {member.user?.name || member.user?.email}&apos;s role and
             permissions.
           </DialogDescription>
         </DialogHeader>

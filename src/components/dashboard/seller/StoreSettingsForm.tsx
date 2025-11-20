@@ -344,7 +344,7 @@ export function StoreSettingsForm({
                     />
                   </FormControl>
                   <FormDescription>
-                    URL to your store's photo or logo
+                    URL to your store&apos;s photo or logo
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
