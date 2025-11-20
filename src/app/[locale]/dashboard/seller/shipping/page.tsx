@@ -4,12 +4,17 @@ import { getSellerShipments } from "@/application/shipping/seller/getSellerShipm
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function SellerShippingPage() {
+export default async function SellerShippingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller/shipping");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller/shipping`);
   }
 
   // Get seller's stores

@@ -5,17 +5,20 @@ import { redirect } from "next/navigation";
 import { SellerDashboardClient } from "@/components/dashboard/seller/SellerDashboardClient";
 
 export default async function SellerDashboardPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ store?: string }>;
 }) {
+  const { locale } = await params();
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller`);
   }
 
   // Verify user is a seller
@@ -28,7 +31,7 @@ export default async function SellerDashboardPage({
   const role = profile?.role ?? "buyer";
 
   if (role !== "seller") {
-    redirect("/dashboard");
+    redirect(`/${locale}/dashboard`);
   }
 
   // Get selected store from search params (if provided)

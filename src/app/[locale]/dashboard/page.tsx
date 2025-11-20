@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BuyerDashboard from "@/components/dashboard/buyer/BuyerDashboard";
@@ -13,14 +14,19 @@ function formatRole(role: DashboardRole) {
   return "admin";
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params();
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard`);
   }
 
   const { data: profile } = await supabase
@@ -48,7 +54,7 @@ export default async function DashboardPage() {
 
   // Seller dashboard has its own layout (redirect to seller dashboard)
   if (role === "seller") {
-    redirect("/dashboard/seller");
+    redirect(`/${locale}/dashboard/seller`);
   }
 
   // Buyer dashboard uses the standard layout (Navbar + Footer)

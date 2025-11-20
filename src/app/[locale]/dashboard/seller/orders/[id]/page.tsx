@@ -8,17 +8,17 @@ export default async function SellerOrderDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
   searchParams: Promise<{ storeId?: string }>;
 }) {
+  const { locale, id } = await params();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller/orders");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller/orders`);
   }
 
-  const { id } = await params;
   const { storeId } = await searchParams;
 
   // Get seller's stores
@@ -32,7 +32,7 @@ export default async function SellerOrderDetailPage({
   const selectedStoreId = storeId || (stores && stores.length > 0 ? stores[0].id : null);
 
   if (!selectedStoreId) {
-    redirect("/dashboard/seller/orders");
+    redirect(`/${locale}/dashboard/seller/orders`);
   }
 
   // Fetch order

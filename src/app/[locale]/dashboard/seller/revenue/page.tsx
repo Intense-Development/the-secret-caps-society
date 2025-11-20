@@ -9,12 +9,17 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function SellerRevenuePage() {
+export default async function SellerRevenuePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller/revenue");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller/revenue`);
   }
 
   // Get seller's stores

@@ -4,12 +4,17 @@ import { getSellerOrders } from "@/application/orders/seller/getSellerOrders";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function SellerOrdersPage() {
+export default async function SellerOrdersPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller/orders");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller/orders`);
   }
 
   // Get seller's stores

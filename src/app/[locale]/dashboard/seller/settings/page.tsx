@@ -4,12 +4,17 @@ import { getStoreSettings, getUserSettings } from "@/application/settings/seller
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function SellerSettingsPage() {
+export default async function SellerSettingsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller/settings");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller/settings`);
   }
 
   // Get seller's stores

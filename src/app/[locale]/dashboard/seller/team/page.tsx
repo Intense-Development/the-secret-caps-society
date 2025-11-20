@@ -4,12 +4,17 @@ import { getStoreTeam } from "@/application/team/seller/getStoreTeam";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function SellerTeamPage() {
+export default async function SellerTeamPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/dashboard/seller/team");
+    redirect(`/${locale}/login?redirectTo=/${locale}/dashboard/seller/team`);
   }
 
   // Get seller's stores
