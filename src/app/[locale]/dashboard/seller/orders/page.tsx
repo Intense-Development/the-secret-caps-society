@@ -1,19 +1,37 @@
 import { SellerDashboardLayout } from "@/components/dashboard/seller/SellerDashboardLayout";
+import { SellerOrdersClient } from "@/components/dashboard/seller/SellerOrdersClient";
+import { getSellerOrders } from "@/application/orders/seller/getSellerOrders";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function SellerOrdersPage() {
+export default async function SellerOrdersPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?redirectTo=/dashboard/seller/orders");
+  }
+
+  // Get seller's stores
+  const { data: stores } = await supabase
+    .from("stores")
+    .select("id, name")
+    .eq("owner_id", user.id)
+    .order("name");
+
+  // Get selected store from query params or use first store
+  const selectedStoreId = stores && stores.length > 0 ? stores[0].id : null;
+
+  // Fetch orders for the selected store
+  const orders = await getSellerOrders(selectedStoreId);
+
   return (
     <SellerDashboardLayout>
-      <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Orders</h2>
-          <p className="text-muted-foreground">
-            View and manage your orders
-          </p>
-        </div>
-        <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          Orders management coming soon...
-        </div>
-      </div>
+      <SellerOrdersClient
+        initialOrders={orders}
+        storeId={selectedStoreId}
+        stores={stores || []}
+      />
     </SellerDashboardLayout>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
+import { RevenueTrendChart } from "@/components/dashboard/admin/RevenueTrendChart";
+import { CategoryDistributionChart } from "@/components/dashboard/admin/CategoryDistributionChart";
+import { OrderStatusChart } from "@/components/dashboard/admin/OrderStatusChart";
 import {
   Card,
   CardContent,
@@ -14,6 +17,8 @@ import {
 import { Package, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { useSellerRealtime } from "@/hooks/useSellerRealtime";
 import type { SellerDashboardData } from "@/application/dashboard/seller/getSellerDashboardData";
 
 interface SellerDashboardClientProps {
@@ -29,14 +34,85 @@ export function SellerDashboardClient({
 }: SellerDashboardClientProps) {
   const t = useTranslations("seller.dashboard");
   const router = useRouter();
-  const [dashboardData] = useState(initialData);
+  const [dashboardData, setDashboardData] = useState(initialData);
+  const [storeIds, setStoreIds] = useState<string[]>([]);
 
-  // TODO: Implement useSellerRealtime hook for real-time updates
-  // useSellerRealtime({
-  //   onOrderChange: handleOrderChange,
-  //   onProductChange: handleProductChange,
-  //   enabled: true,
-  // });
+  // Get store IDs from localStorage (set by SellerHeader)
+  useEffect(() => {
+    const selectedStoreId = localStorage.getItem("selectedStoreId");
+    if (selectedStoreId) {
+      setStoreIds([selectedStoreId]);
+    } else {
+      // If no store selected, we'll need to fetch all stores
+      // For now, use empty array - real-time will work once store is selected
+      setStoreIds([]);
+    }
+  }, []);
+
+  // Handle order changes
+  const handleOrderChange = useCallback(
+    (payload: {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new?: Record<string, unknown>;
+      old?: Record<string, unknown>;
+    }) => {
+      if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+        // Refresh dashboard to show new/updated orders
+        router.refresh();
+      }
+    },
+    [router]
+  );
+
+  // Handle product changes
+  const handleProductChange = useCallback(
+    (payload: {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new?: Record<string, unknown>;
+      old?: Record<string, unknown>;
+    }) => {
+      if (payload.eventType === "UPDATE") {
+        const product = payload.new;
+        if (product && product.stock !== undefined) {
+          // If stock was updated, refresh to update low stock alerts
+          router.refresh();
+        }
+      } else if (payload.eventType === "INSERT") {
+        // New product added
+        router.refresh();
+      }
+    },
+    [router]
+  );
+
+  // Handle shipment changes
+  const handleShipmentChange = useCallback(
+    (payload: {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new?: Record<string, unknown>;
+      old?: Record<string, unknown>;
+    }) => {
+      if (payload.eventType === "UPDATE") {
+        const shipment = payload.new;
+        if (shipment && shipment.status) {
+          toast.info("Shipment status updated", {
+            description: `Shipment status changed to ${shipment.status}`,
+          });
+          router.refresh();
+        }
+      }
+    },
+    [router]
+  );
+
+  // Subscribe to realtime updates
+  useSellerRealtime({
+    storeIds,
+    onOrderChange: handleOrderChange,
+    onProductChange: handleProductChange,
+    onShipmentChange: handleShipmentChange,
+    enabled: storeIds.length > 0,
+  });
 
   const hasLowStock =
     dashboardData.lowStockProducts && dashboardData.lowStockProducts.length > 0;
@@ -132,6 +208,50 @@ export function SellerDashboardClient({
           </CardContent>
         </Card>
       )}
+
+      {/* Charts Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Revenue Trend Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+            <CardDescription>
+              Your revenue over the last 6 months
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RevenueTrendChart data={dashboardData.revenueTrend} />
+          </CardContent>
+        </Card>
+
+        {/* Category Distribution Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Category Distribution</CardTitle>
+            <CardDescription>
+              Product distribution across categories
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CategoryDistributionChart
+              data={dashboardData.categoryDistribution}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Order Status Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Status</CardTitle>
+            <CardDescription>
+              Current order distribution by status
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OrderStatusChart data={dashboardData.orderStatus} />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Order Management Section */}
       <Card className="border-border/50 shadow-sm">

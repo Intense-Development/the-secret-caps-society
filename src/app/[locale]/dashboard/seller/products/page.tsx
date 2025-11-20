@@ -1,19 +1,38 @@
 import { SellerDashboardLayout } from "@/components/dashboard/seller/SellerDashboardLayout";
+import { SellerProductsClient } from "@/components/dashboard/seller/SellerProductsClient";
+import { getSellerProducts } from "@/application/products/seller/getSellerProducts";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function SellerProductsPage() {
+export default async function SellerProductsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?redirectTo=/dashboard/seller/products");
+  }
+
+  // Get seller's stores
+  const { data: stores } = await supabase
+    .from("stores")
+    .select("id, name")
+    .eq("owner_id", user.id)
+    .order("name");
+
+  // Get selected store from query params or use first store
+  // For now, we'll use the first store (in production, this would come from localStorage or query params)
+  const selectedStoreId = stores && stores.length > 0 ? stores[0].id : null;
+
+  // Fetch products for the selected store
+  const products = await getSellerProducts(selectedStoreId);
+
   return (
     <SellerDashboardLayout>
-      <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Products</h2>
-          <p className="text-muted-foreground">
-            Manage your products and inventory
-          </p>
-        </div>
-        <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          Products management coming soon...
-        </div>
-      </div>
+      <SellerProductsClient
+        initialProducts={products}
+        storeId={selectedStoreId}
+        stores={stores || []}
+      />
     </SellerDashboardLayout>
   );
 }
