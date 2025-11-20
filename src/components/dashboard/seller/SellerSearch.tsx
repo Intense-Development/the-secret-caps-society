@@ -110,7 +110,7 @@ export function SellerSearch() {
       case "product":
         return `/dashboard/seller/products?highlight=${result.id}`;
       case "order":
-        return `/dashboard/seller/orders?order=${result.id}`;
+        return `/dashboard/seller/orders/${result.id}`;
       case "customer":
         return `/dashboard/seller/orders?customer=${result.id}`;
       default:
@@ -180,4 +180,3 @@ export function SellerSearch() {
     </Popover>
   );
 }
-

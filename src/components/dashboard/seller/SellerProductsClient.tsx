@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +30,8 @@ export function SellerProductsClient({
   stores,
 }: SellerProductsClientProps) {
   const t = useTranslations("seller.products");
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [products, setProducts] = useState<SellerProduct[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -36,6 +39,33 @@ export function SellerProductsClient({
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(
     storeId
   );
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
+
+  // Handle highlight query parameter from search
+  useEffect(() => {
+    const highlightId = searchParams.get("highlight");
+    if (highlightId && products.length > 0) {
+      const product = products.find((p) => p.id === highlightId);
+      if (product) {
+        setHighlightedProductId(highlightId);
+        // Scroll to product after a short delay
+        setTimeout(() => {
+          const element = document.getElementById(`product-${highlightId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+              setHighlightedProductId(null);
+              // Clean up URL
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("highlight");
+              router.replace(`/dashboard/seller/products?${params.toString()}`);
+            }, 3000);
+          }
+        }, 100);
+      }
+    }
+  }, [searchParams, products, router]);
 
   // Get selected store from localStorage (set by SellerHeader)
   useEffect(() => {
@@ -199,6 +229,7 @@ export function SellerProductsClient({
         products={filteredProducts}
         storeId={selectedStoreId}
         onRefresh={handleRefresh}
+        highlightedProductId={highlightedProductId}
       />
 
       {/* Create Dialog */}

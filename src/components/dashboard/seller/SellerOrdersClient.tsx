@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { OrdersTable } from "./OrdersTable";
+import { OrderDetailDialog } from "./OrderDetailDialog";
 import type { SellerOrder } from "@/application/orders/seller/getSellerOrders";
 import { toast } from "sonner";
 
@@ -27,12 +29,45 @@ export function SellerOrdersClient({
   stores,
 }: SellerOrdersClientProps) {
   const t = useTranslations("seller.orders");
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [orders, setOrders] = useState<SellerOrder[]>(initialOrders);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(
     storeId
   );
+  const [selectedOrder, setSelectedOrder] = useState<SellerOrder | null>(null);
+
+  // Handle order query parameter from search
+  useEffect(() => {
+    const orderId = searchParams.get("order");
+    const customerId = searchParams.get("customer");
+    
+    if (orderId && orders.length > 0) {
+      const order = orders.find((o) => o.id === orderId);
+      if (order) {
+        setSelectedOrder(order);
+        // Clean up URL
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("order");
+        router.replace(`/dashboard/seller/orders?${params.toString()}`);
+      }
+    }
+    
+    if (customerId) {
+      // Filter by customer email or name
+      const customerOrders = orders.filter(
+        (o) => o.buyer_email === customerId || o.buyer_name === customerId
+      );
+      if (customerOrders.length > 0) {
+        // Could highlight or scroll to these orders
+        // For now, just set search query
+        const customerName = customerOrders[0].buyer_name || customerOrders[0].buyer_email || "";
+        setSearchQuery(customerName);
+      }
+    }
+  }, [searchParams, orders, router]);
 
   // Get selected store from localStorage (set by SellerHeader)
   useEffect(() => {
@@ -168,6 +203,17 @@ export function SellerOrdersClient({
 
       {/* Orders Table */}
       <OrdersTable orders={filteredOrders} onRefresh={handleRefresh} />
+
+      {/* Order Detail Dialog */}
+      {selectedOrder && (
+        <OrderDetailDialog
+          order={selectedOrder}
+          onClose={() => {
+            setSelectedOrder(null);
+            handleRefresh();
+          }}
+        />
+      )}
     </div>
   );
 }

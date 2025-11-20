@@ -29,12 +29,14 @@ interface ProductsTableProps {
   products: SellerProduct[];
   storeId: string | null;
   onRefresh: () => void;
+  highlightedProductId?: string | null;
 }
 
 export function ProductsTable({
   products,
   storeId,
   onRefresh,
+  highlightedProductId,
 }: ProductsTableProps) {
   const [editingProduct, setEditingProduct] = useState<SellerProduct | null>(
     null
@@ -98,7 +100,15 @@ export function ProductsTable({
               </TableRow>
             ) : (
               products.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow
+                  key={product.id}
+                  id={`product-${product.id}`}
+                  className={
+                    highlightedProductId === product.id
+                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 animate-pulse"
+                      : ""
+                  }
+                >
                   <TableCell>
                     {product.image ? (
                       <div className="relative h-12 w-12 overflow-hidden rounded-md">
