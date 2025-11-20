@@ -9,18 +9,8 @@ import { getLocaleDirection } from "@/i18n/locale";
  * Since Next.js 15 requires html/body in root layout, we update attributes dynamically
  */
 export function LocaleHtmlAttributes() {
-  let locale: string;
-  let direction: "ltr" | "rtl";
-  
-  try {
-    locale = useLocale();
-    direction = getLocaleDirection(locale);
-  } catch (error) {
-    // Fallback if useLocale fails
-    console.error("Error getting locale:", error);
-    locale = "en";
-    direction = "ltr";
-  }
+  const locale = useLocale();
+  const direction = getLocaleDirection(locale);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
