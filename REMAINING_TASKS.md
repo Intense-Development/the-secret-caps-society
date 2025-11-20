@@ -11,6 +11,10 @@ All 8 phases of the Seller Dashboard have been implemented and are fully functio
 - Phase 7: Team Management
 - Phase 8: Settings
 - Global Search
+- Order Detail Page Route
+- URL Query Parameter Support (search navigation)
+- Revenue 30 Days Calculation
+- Product Archiving Support
 
 ## 📋 Remaining Tasks
 
