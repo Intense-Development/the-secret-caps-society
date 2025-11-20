@@ -49,6 +49,15 @@ const storeSchema = z.object({
 
 type StoreFormValues = z.infer<typeof storeSchema>;
 
+type BusinessType = "sole-proprietor" | "llc" | "corporation" | "partnership";
+
+const validBusinessTypes: BusinessType[] = ["sole-proprietor", "llc", "corporation", "partnership"];
+
+function validateBusinessType(value: string | null | undefined): BusinessType | null {
+  if (!value) return null;
+  return validBusinessTypes.includes(value as BusinessType) ? (value as BusinessType) : null;
+}
+
 interface StoreSettingsFormProps {
   store: StoreSettings;
   storeId: string | null;
@@ -68,7 +77,7 @@ export function StoreSettingsForm({
       name: store.name,
       description: store.description || "",
       website: store.website || "",
-      business_type: store.business_type || null,
+      business_type: validateBusinessType(store.business_type),
       tax_id: store.tax_id || "",
       address: store.address,
       city: store.city,
@@ -83,7 +92,7 @@ export function StoreSettingsForm({
       name: store.name,
       description: store.description || "",
       website: store.website || "",
-      business_type: store.business_type || null,
+      business_type: validateBusinessType(store.business_type),
       tax_id: store.tax_id || "",
       address: store.address,
       city: store.city,
