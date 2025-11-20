@@ -23,10 +23,36 @@ export function SellerSearch() {
   const t = useTranslations("seller.search");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
-  // Get store from localStorage
+  // Get store from localStorage and listen for changes
   useEffect(() => {
-    const storeId = localStorage.getItem("selectedStoreId");
-    setSelectedStoreId(storeId);
+    const updateStoreId = () => {
+      const storeId = localStorage.getItem("selectedStoreId");
+      setSelectedStoreId(storeId);
+    };
+
+    // Initial load
+    updateStoreId();
+
+    // Listen for storage changes (when store is changed in SellerHeader)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "selectedStoreId") {
+        updateStoreId();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also listen for custom event (for same-tab updates)
+    const handleCustomStorageChange = () => {
+      updateStoreId();
+    };
+
+    window.addEventListener("storeChanged", handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("storeChanged", handleCustomStorageChange);
+    };
   }, []);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
