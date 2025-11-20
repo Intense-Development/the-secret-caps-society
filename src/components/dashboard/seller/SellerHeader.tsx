@@ -98,7 +98,8 @@ export function SellerHeader() {
   const handleStoreChange = (storeId: string) => {
     setSelectedStoreId(storeId);
     localStorage.setItem("selectedStoreId", storeId);
-    
+    // Dispatch custom event for same-tab updates
+    window.dispatchEvent(new Event("storeChanged"));
     // Refresh the page to update all data
     router.refresh();
   };
