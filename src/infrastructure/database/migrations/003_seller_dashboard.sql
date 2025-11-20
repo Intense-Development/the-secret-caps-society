@@ -1,6 +1,15 @@
 -- Migration for Seller Dashboard features
 -- Adds product archiving, shipments table, and store team members table
 
+-- Ensure update_updated_at_column function exists (idempotent)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 -- Add archived field to products table
 ALTER TABLE products ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT false;
 
