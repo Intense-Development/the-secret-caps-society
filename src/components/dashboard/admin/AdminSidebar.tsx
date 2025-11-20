@@ -6,8 +6,6 @@ import { Link } from "@/i18n/routing-config";
 import {
   LayoutDashboard,
   Store,
-  Package,
-  ShoppingBag,
   Users,
   BarChart3,
   CreditCard,
@@ -33,16 +31,6 @@ const menuItems = [
     key: "stores",
     href: "/dashboard/admin/stores",
     icon: Store,
-  },
-  {
-    key: "products",
-    href: "/dashboard/admin/products",
-    icon: Package,
-  },
-  {
-    key: "orders",
-    href: "/dashboard/admin/orders",
-    icon: ShoppingBag,
   },
   {
     key: "users",
