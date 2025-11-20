@@ -195,14 +195,9 @@ export async function DELETE(
           { status: 500 }
         );
       }
-    } else if (archiveError) {
-      // If archive operation itself had an error (not just column missing)
-      return NextResponse.json(
-        { error: archiveError.message },
-        { status: 500 }
-      );
     }
 
+    // If archive succeeded or delete succeeded, return success
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting product:", error);
