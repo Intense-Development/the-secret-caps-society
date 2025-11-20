@@ -1,16 +1,13 @@
 import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing-config";
-import { getLocaleDirection } from "@/i18n/locale";
-import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { QueryProvider } from "@/components/Providers";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
-const inter = Inter({ subsets: ["latin"] });
+import { LocaleHtmlAttributes } from "@/components/LocaleHtmlAttributes";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -52,26 +49,21 @@ export default async function LocaleLayout({
     }
   }
 
-  const direction = getLocaleDirection(locale);
-
   return (
-    <html lang={locale} dir={direction} suppressHydrationWarning>
-      <body className={inter.className}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <QueryProvider>
-              <CartProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  {children}
-                </TooltipProvider>
-              </CartProvider>
-            </QueryProvider>
-          </ThemeProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <LocaleHtmlAttributes />
+              <Toaster />
+              <Sonner />
+              {children}
+            </TooltipProvider>
+          </CartProvider>
+        </QueryProvider>
+      </ThemeProvider>
+    </NextIntlClientProvider>
   );
 }
 

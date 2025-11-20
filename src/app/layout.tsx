@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "../index.css";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Secret Caps Society",
@@ -11,5 +14,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        {children}
+      </body>
+    </html>
+  );
 }

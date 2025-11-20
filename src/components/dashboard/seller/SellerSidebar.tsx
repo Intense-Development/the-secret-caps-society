@@ -5,10 +5,11 @@ import { usePathname } from "@/i18n/routing-config";
 import { Link } from "@/i18n/routing-config";
 import {
   LayoutDashboard,
-  Store,
+  Package,
+  ShoppingBag,
+  DollarSign,
+  Truck,
   Users,
-  BarChart3,
-  CreditCard,
   Settings,
 } from "lucide-react";
 import {
@@ -24,38 +25,43 @@ import {
 const menuItems = [
   {
     key: "dashboard",
-    href: "/dashboard",
+    href: "/dashboard/seller",
     icon: LayoutDashboard,
   },
   {
-    key: "stores",
-    href: "/dashboard/admin/stores",
-    icon: Store,
+    key: "products",
+    href: "/dashboard/seller/products",
+    icon: Package,
   },
   {
-    key: "users",
-    href: "/dashboard/admin/users",
+    key: "orders",
+    href: "/dashboard/seller/orders",
+    icon: ShoppingBag,
+  },
+  {
+    key: "revenue",
+    href: "/dashboard/seller/revenue",
+    icon: DollarSign,
+  },
+  {
+    key: "shipping",
+    href: "/dashboard/seller/shipping",
+    icon: Truck,
+  },
+  {
+    key: "team",
+    href: "/dashboard/seller/team",
     icon: Users,
   },
   {
-    key: "analytics",
-    href: "/dashboard/admin/analytics",
-    icon: BarChart3,
-  },
-  {
-    key: "payments",
-    href: "/dashboard/admin/payments",
-    icon: CreditCard,
-  },
-  {
     key: "settings",
-    href: "/dashboard/admin/settings",
+    href: "/dashboard/seller/settings",
     icon: Settings,
   },
 ];
 
-export function AdminSidebar() {
-  const t = useTranslations("admin.sidebar");
+export function SellerSidebar() {
+  const t = useTranslations("seller.sidebar");
   const pathname = usePathname();
 
   return (
@@ -68,7 +74,7 @@ export function AdminSidebar() {
                 const Icon = item.icon;
                 const isActive =
                   item.href === pathname ||
-                  (item.href !== "/dashboard" &&
+                  (item.href !== "/dashboard/seller" &&
                     pathname?.startsWith(item.href));
 
                 return (

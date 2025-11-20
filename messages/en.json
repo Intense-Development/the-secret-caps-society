@@ -154,6 +154,229 @@
       "verificationDocument": "Verification Document",
       "viewDocument": "View Document"
     }
+  },
+  "seller": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "orders": "Orders",
+      "revenue": "Revenue",
+      "shipping": "Shipping",
+      "team": "Team",
+      "settings": "Settings"
+    },
+    "header": {
+      "search": "Search...",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "logout": "Log Out"
+    },
+    "search": {
+      "placeholder": "Search products, orders, customers...",
+      "noResults": "No results found",
+      "loading": "Searching..."
+    },
+    "dashboard": {
+      "title": "Seller Dashboard",
+      "description": "Manage your store and track performance"
+    },
+    "products": {
+      "title": "Products",
+      "description": "Manage your products and inventory",
+      "addProduct": "Add Product",
+      "searchPlaceholder": "Search products...",
+      "allCategories": "All categories",
+      "noProducts": "No products found. Create your first product to get started.",
+      "noStores": "No stores found",
+      "noStoresDescription": "You need to create a store before you can add products.",
+      "create": {
+        "title": "Create New Product",
+        "description": "Fill in the details to create a new product.",
+        "name": "Product Name",
+        "price": "Price",
+        "stock": "Stock",
+        "category": "Category",
+        "imageUrl": "Image URL",
+        "description": "Description",
+        "submit": "Create Product"
+      },
+      "edit": {
+        "title": "Edit Product",
+        "description": "Update your product information below.",
+        "submit": "Update Product"
+      },
+      "delete": {
+        "title": "Are you sure?",
+        "description": "This action cannot be undone. This will permanently delete the product",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "orders": {
+      "title": "Orders",
+      "description": "View and manage your orders",
+      "searchPlaceholder": "Search orders...",
+      "allStatuses": "All statuses",
+      "noOrders": "No orders found",
+      "noOrdersDescription": "Orders will appear here when customers purchase your products.",
+      "noStores": "No stores found",
+      "noStoresDescription": "You need to create a store before you can view orders.",
+      "detail": {
+        "title": "Order Details",
+        "customerInfo": "Customer Information",
+        "orderItems": "Order Items",
+        "partialOrder": "Partial Order",
+        "partialOrderDescription": "This order contains products from other sellers. Only your products are shown below.",
+        "yourProductsTotal": "Your Products Total",
+        "orderTotal": "Order Total",
+        "partialOrderNote": "Note: The order total includes products from other sellers. You will receive payment for your portion only.",
+        "placed": "Placed",
+        "lastUpdated": "Last Updated"
+      }
+    },
+    "revenue": {
+      "title": "Revenue",
+      "description": "Track your revenue and sales analytics",
+      "noStores": "No stores found",
+      "noStoresDescription": "You need to create a store before you can view revenue analytics.",
+      "exportCSV": "Export CSV",
+      "period": {
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "1y": "Last year"
+      },
+      "overview": {
+        "totalRevenue": "Total Revenue",
+        "averageOrderValue": "Average Order Value",
+        "totalOrders": "Total Orders",
+        "growth": "Growth",
+        "vsPreviousPeriod": "vs previous period",
+        "perOrderAverage": "Per order average",
+        "completedOrders": "Completed orders",
+        "revenueGrowth": "Revenue growth"
+      },
+      "trend": {
+        "title": "Revenue Trend",
+        "description": "Revenue over the selected period",
+        "noData": "No revenue data available for this period"
+      },
+      "breakdown": {
+        "revenueByCategory": "Revenue by Category",
+        "revenueByCategoryDesc": "Revenue distribution across product categories",
+        "topProducts": "Top Selling Products",
+        "topProductsDesc": "Best performing products by revenue",
+        "noCategoryData": "No category data available",
+        "noProductData": "No product data available"
+      }
+    },
+    "shipping": {
+      "title": "Shipping",
+      "description": "Manage shipments and tracking",
+      "noStores": "No stores found",
+      "noStoresDescription": "You need to create a store before you can manage shipments.",
+      "createShipment": "Create Shipment",
+      "searchPlaceholder": "Search shipments...",
+      "allStatuses": "All statuses",
+      "noShipments": "No shipments found",
+      "noShipmentsDescription": "Shipments will appear here when you create them for orders.",
+      "form": {
+        "createTitle": "Create Shipment",
+        "editTitle": "Edit Shipment",
+        "createDescription": "Add tracking information for this order.",
+        "editDescription": "Update shipment information and tracking details.",
+        "trackingNumber": "Tracking Number",
+        "trackingNumberDesc": "Optional tracking number from carrier",
+        "carrier": "Carrier",
+        "carrierDesc": "Shipping carrier name",
+        "status": "Status",
+        "estimatedDelivery": "Estimated Delivery",
+        "estimatedDeliveryDesc": "Expected delivery date (optional)",
+        "submit": "Create Shipment",
+        "update": "Update Shipment"
+      },
+      "detail": {
+        "title": "Shipment Details",
+        "orderInfo": "Order Information",
+        "trackingInfo": "Tracking Information",
+        "timeline": "Timeline",
+        "orderId": "Order ID",
+        "orderTotal": "Order Total",
+        "orderStatus": "Order Status",
+        "trackingNumber": "Tracking Number",
+        "carrier": "Carrier",
+        "created": "Created",
+        "shipped": "Shipped",
+        "estimatedDelivery": "Estimated Delivery",
+        "delivered": "Delivered"
+      }
+    },
+    "team": {
+      "title": "Team",
+      "description": "Manage your team members",
+      "noStores": "No stores found",
+      "noStoresDescription": "You need to create a store before you can manage team members.",
+      "inviteMember": "Invite Member",
+      "noTeamMembers": "No team members",
+      "noTeamMembersDescription": "Invite team members to help manage your store.",
+      "invite": {
+        "title": "Invite Team Member",
+        "description": "Invite a user to join your store team by email address.",
+        "email": "Email Address",
+        "emailDesc": "The user must have an account with this email.",
+        "role": "Role",
+        "roleDesc": "Staff: Basic access, Manager: Full access except settings",
+        "submit": "Send Invitation"
+      },
+      "edit": {
+        "title": "Edit Team Member",
+        "description": "Update team member's role and permissions.",
+        "member": "Member",
+        "role": "Role",
+        "roleDesc": "Owner role cannot be changed.",
+        "submit": "Update Member"
+      },
+      "delete": {
+        "title": "Remove Team Member?",
+        "description": "This will remove the team member from your store team. They will no longer have access to this store.",
+        "confirm": "Remove",
+        "cancel": "Cancel"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your store and account settings",
+      "noStores": "No stores found",
+      "noStoresDescription": "You need to create a store before you can manage settings.",
+      "store": {
+        "title": "Store Settings",
+        "description": "Manage your store information and details",
+        "name": "Store Name",
+        "description": "Description",
+        "website": "Website",
+        "businessType": "Business Type",
+        "taxId": "Tax ID",
+        "taxIdDesc": "Optional tax identification number",
+        "address": "Address",
+        "streetAddress": "Street Address",
+        "city": "City",
+        "state": "State",
+        "zip": "ZIP Code",
+        "photo": "Store Photo URL",
+        "photoDesc": "URL to your store's photo or logo",
+        "save": "Save Changes"
+      },
+      "account": {
+        "title": "Account Settings",
+        "description": "Manage your account information",
+        "name": "Name",
+        "email": "Email",
+        "emailDesc": "Email cannot be changed. Contact support if you need to update your email.",
+        "role": "Role",
+        "roleDesc": "Your account role. This cannot be changed.",
+        "save": "Save Changes"
+      }
+    }
   }
 }
 

@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import type { SummaryCard } from "@/components/dashboard/SummaryCards";
+import type { RevenueTrendData } from "@/components/dashboard/admin/RevenueTrendChart";
+import type { CategoryDistributionData } from "@/components/dashboard/admin/CategoryDistributionChart";
+import type { OrderStatusData } from "@/components/dashboard/admin/OrderStatusChart";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 export type SellerDashboardData = {
   summaryCards: SummaryCard[];
@@ -15,6 +19,9 @@ export type SellerDashboardData = {
     total_amount: number;
     created_at: string;
   }>;
+  revenueTrend: RevenueTrendData[];
+  categoryDistribution: CategoryDistributionData[];
+  orderStatus: OrderStatusData[];
 };
 
 /**
@@ -37,7 +44,7 @@ export async function getSellerStores(userId: string): Promise<string[]> {
 
 /**
  * Get revenue from order_items for last 7 days
- * Joins: order_items -> products (filter by store_id)
+ * Only includes orders that are 100% seller's products (no mixed orders)
  */
 export async function getSellerRevenue7Days(
   storeIds: string[]
@@ -54,14 +61,10 @@ export async function getSellerRevenue7Days(
   const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
   // Get all products from seller's stores
-  const { data: products, error: productsError } = await supabase
+  const { data: products } = await supabase
     .from("products")
     .select("id")
     .in("store_id", storeIds);
-
-  if (productsError) {
-    throw new Error(productsError.message);
-  }
 
   if (!products || products.length === 0) {
     return 0;
@@ -69,26 +72,127 @@ export async function getSellerRevenue7Days(
 
   const productIds = products.map((p) => p.id);
 
-  // Get order_items for these products in last 7 days
-  const { data: orderItems, error: orderItemsError } = await supabase
+  // Get order_items for these products
+  const { data: orderItems } = await supabase
     .from("order_items")
-    .select("price, quantity")
-    .in("product_id", productIds)
-    .gte("created_at", sevenDaysAgoISO);
-
-  if (orderItemsError) {
-    throw new Error(orderItemsError.message);
-  }
+    .select("order_id, price, quantity")
+    .in("product_id", productIds);
 
   if (!orderItems || orderItems.length === 0) {
     return 0;
   }
 
-  // Calculate total revenue
-  const total = orderItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.toString());
-    const quantity = item.quantity;
-    return sum + price * quantity;
+  // Calculate seller revenue per order
+  const orderItemRevenue = new Map<string, number>();
+  orderItems.forEach((item) => {
+    const current = orderItemRevenue.get(item.order_id) || 0;
+    orderItemRevenue.set(
+      item.order_id,
+      current + parseFloat(item.price.toString()) * item.quantity
+    );
+  });
+
+  // Get orders in last 7 days
+  const orderIds = Array.from(orderItemRevenue.keys());
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, total_amount, created_at")
+    .in("id", orderIds)
+    .eq("status", "completed")
+    .gte("created_at", sevenDaysAgoISO);
+
+  if (!orders) {
+    return 0;
+  }
+
+  // Filter to 100% seller orders and calculate revenue
+  const sellerOnlyOrders = orders.filter((order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    const orderTotal = parseFloat(order.total_amount.toString());
+    return Math.abs(sellerRevenue - orderTotal) < 0.01;
+  });
+
+  const total = sellerOnlyOrders.reduce((sum, order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    return sum + sellerRevenue;
+  }, 0);
+
+  return total;
+}
+
+/**
+ * Get revenue from order_items for last 30 days
+ * Only includes orders that are 100% seller's products (no mixed orders)
+ */
+export async function getSellerRevenue30Days(
+  storeIds: string[]
+): Promise<number> {
+  if (storeIds.length === 0) {
+    return 0;
+  }
+
+  const supabase = await createClient();
+
+  // Calculate date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
+
+  // Get all products from seller's stores
+  const { data: products } = await supabase
+    .from("products")
+    .select("id")
+    .in("store_id", storeIds);
+
+  if (!products || products.length === 0) {
+    return 0;
+  }
+
+  const productIds = products.map((p) => p.id);
+
+  // Get order_items for these products
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select("order_id, price, quantity")
+    .in("product_id", productIds);
+
+  if (!orderItems || orderItems.length === 0) {
+    return 0;
+  }
+
+  // Calculate seller revenue per order
+  const orderItemRevenue = new Map<string, number>();
+  orderItems.forEach((item) => {
+    const current = orderItemRevenue.get(item.order_id) || 0;
+    orderItemRevenue.set(
+      item.order_id,
+      current + parseFloat(item.price.toString()) * item.quantity
+    );
+  });
+
+  // Get orders in last 30 days
+  const orderIds = Array.from(orderItemRevenue.keys());
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, total_amount, created_at")
+    .in("id", orderIds)
+    .eq("status", "completed")
+    .gte("created_at", thirtyDaysAgoISO);
+
+  if (!orders) {
+    return 0;
+  }
+
+  // Filter to 100% seller orders and calculate revenue
+  const sellerOnlyOrders = orders.filter((order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    const orderTotal = parseFloat(order.total_amount.toString());
+    return Math.abs(sellerRevenue - orderTotal) < 0.01;
+  });
+
+  const total = sellerOnlyOrders.reduce((sum, order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    return sum + sellerRevenue;
   }, 0);
 
   return total;
@@ -302,6 +406,243 @@ function calculatePercentageChange(current: number, previous: number): string {
 }
 
 /**
+ * Get revenue trend data for last 6 months
+ * Only includes orders that are 100% seller's products (no mixed orders)
+ */
+async function getSellerRevenueTrend(
+  storeIds: string[]
+): Promise<RevenueTrendData[]> {
+  if (storeIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+
+  // Get all products from seller's stores
+  // Note: archived field may not exist yet - will be added in migration
+  const { data: products } = await supabase
+    .from("products")
+    .select("id")
+    .in("store_id", storeIds);
+
+  if (!products || products.length === 0) {
+    return [];
+  }
+
+  const productIds = products.map((p) => p.id);
+
+  // Get order_items for these products in last 6 months
+  // Note: order_items doesn't have created_at, we'll filter by order created_at instead
+  const sixMonthsAgo = subMonths(new Date(), 6);
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select("order_id, price, quantity")
+    .in("product_id", productIds);
+
+  if (!orderItems || orderItems.length === 0) {
+    return [];
+  }
+
+  // Group by order_id to check if order is 100% seller's products
+  const orderItemMap = new Map<string, number>();
+  orderItems.forEach((item) => {
+    const current = orderItemMap.get(item.order_id) || 0;
+    orderItemMap.set(
+      item.order_id,
+      current + parseFloat(item.price.toString()) * item.quantity
+    );
+  });
+
+  // Get all orders that contain seller's products (last 6 months)
+  const orderIds = Array.from(orderItemMap.keys());
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, total_amount, created_at")
+    .in("id", orderIds)
+    .eq("status", "completed")
+    .gte("created_at", sixMonthsAgo.toISOString());
+
+  if (!orders) {
+    return [];
+  }
+
+  // Filter orders where ALL items belong to seller (100% seller orders only)
+  const sellerOnlyOrders = orders.filter((order) => {
+    const sellerRevenue = orderItemMap.get(order.id) || 0;
+    const orderTotal = parseFloat(order.total_amount.toString());
+    // If seller revenue is very close to order total (within 1 cent), consider it 100% seller
+    return Math.abs(sellerRevenue - orderTotal) < 0.01;
+  });
+
+  // Process revenue trend data (last 6 months)
+  const revenueTrend: RevenueTrendData[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = subMonths(now, i);
+    const monthStart = startOfMonth(monthDate);
+    const monthEnd = endOfMonth(monthDate);
+
+    const monthRevenue = sellerOnlyOrders
+      .filter((order) => {
+        const orderDate = new Date(order.created_at);
+        return orderDate >= monthStart && orderDate <= monthEnd;
+      })
+      .reduce((sum, order) => {
+        const sellerRevenue = orderItemMap.get(order.id) || 0;
+        return sum + sellerRevenue;
+      }, 0);
+
+    revenueTrend.push({
+      month: format(monthDate, "MMM"),
+      revenue: monthRevenue,
+    });
+  }
+
+  return revenueTrend;
+}
+
+/**
+ * Get category distribution for seller's products
+ */
+async function getSellerCategoryDistribution(
+  storeIds: string[]
+): Promise<CategoryDistributionData[]> {
+  if (storeIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+
+  // Note: archived field may not exist yet - will be added in migration
+  const { data: products } = await supabase
+    .from("products")
+    .select("category")
+    .in("store_id", storeIds)
+    .not("category", "is", null);
+
+  if (!products) {
+    return [];
+  }
+
+  const categoryCounts: Record<string, number> = {};
+  products.forEach((product) => {
+    const category = product.category || "Other";
+    categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+  });
+
+  const categoryDistribution: CategoryDistributionData[] = Object.entries(
+    categoryCounts
+  )
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10); // Top 10 categories
+
+  return categoryDistribution;
+}
+
+/**
+ * Get order status distribution for seller's orders
+ * Only includes orders that are 100% seller's products
+ */
+async function getSellerOrderStatus(
+  storeIds: string[]
+): Promise<OrderStatusData[]> {
+  if (storeIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+
+  // Get all products from seller's stores
+  // Note: archived field may not exist yet - will be added in migration
+  const { data: products } = await supabase
+    .from("products")
+    .select("id")
+    .in("store_id", storeIds);
+
+  if (!products || products.length === 0) {
+    return [];
+  }
+
+  const productIds = products.map((p) => p.id);
+
+  // Get order_items for these products
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select("order_id")
+    .in("product_id", productIds);
+
+  if (!orderItems || orderItems.length === 0) {
+    return [];
+  }
+
+  const uniqueOrderIds = [...new Set(orderItems.map((item) => item.order_id))];
+
+  // Get order_items with price and quantity for revenue calculation
+  const { data: orderItemsWithPrice } = await supabase
+    .from("order_items")
+    .select("order_id, price, quantity")
+    .in("product_id", productIds);
+
+  if (!orderItemsWithPrice) {
+    return [];
+  }
+
+  // Calculate seller revenue per order
+  const orderItemRevenue = new Map<string, number>();
+  orderItemsWithPrice.forEach((item) => {
+    const current = orderItemRevenue.get(item.order_id) || 0;
+    orderItemRevenue.set(
+      item.order_id,
+      current + parseFloat(item.price.toString()) * item.quantity
+    );
+  });
+
+  // Get orders
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, status, total_amount")
+    .in("id", uniqueOrderIds);
+
+  if (!orders) {
+    return [];
+  }
+
+  // Filter orders where ALL items belong to seller (100% seller orders only)
+  const sellerOnlyOrders = orders.filter((order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    const orderTotal = parseFloat(order.total_amount.toString());
+    // If seller revenue is very close to order total (within 1 cent), consider it 100% seller
+    return Math.abs(sellerRevenue - orderTotal) < 0.01;
+  });
+
+  // Count by status
+  const statusCounts: Record<string, number> = {};
+  sellerOnlyOrders.forEach((order) => {
+    const status = order.status || "unknown";
+    const statusKey =
+      status === "completed"
+        ? "Delivered"
+        : status === "processing"
+        ? "Processing"
+        : status === "pending"
+        ? "Pending"
+        : status === "cancelled"
+        ? "Cancelled"
+        : status === "refunded"
+        ? "Refunded"
+        : "Unknown";
+    statusCounts[statusKey] = (statusCounts[statusKey] || 0) + 1;
+  });
+
+  const orderStatus: OrderStatusData[] = Object.entries(statusCounts)
+    .map(([status, count]) => ({ status, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return orderStatus;
+}
+
+/**
  * Get seller dashboard data with all metrics aggregated
  */
 export async function getSellerDashboardData(
@@ -310,18 +651,28 @@ export async function getSellerDashboardData(
   // Get seller's stores first
   const storeIds = await getSellerStores(userId);
 
-  // Fetch all metrics in parallel (except those dependent on storeIds)
-  const [revenue7d, ordersFulfilled, productsCount, lowStockProducts, pendingOrders] =
-    await Promise.all([
-      getSellerRevenue7Days(storeIds),
-      getSellerOrdersFulfilled(storeIds),
-      getSellerProductsCount(storeIds),
-      getSellerLowStockProducts(storeIds),
-      getSellerPendingOrders(storeIds),
-    ]);
-
-  // Calculate revenue 30 days for comparison (placeholder - would need separate query)
-  const revenue30d = 0; // TODO: Implement in future phase
+  // Fetch all metrics in parallel
+  const [
+    revenue7d,
+    revenue30d,
+    ordersFulfilled,
+    productsCount,
+    lowStockProducts,
+    pendingOrders,
+    revenueTrend,
+    categoryDistribution,
+    orderStatus,
+  ] = await Promise.all([
+    getSellerRevenue7Days(storeIds),
+    getSellerRevenue30Days(storeIds),
+    getSellerOrdersFulfilled(storeIds),
+    getSellerProductsCount(storeIds),
+    getSellerLowStockProducts(storeIds),
+    getSellerPendingOrders(storeIds),
+    getSellerRevenueTrend(storeIds),
+    getSellerCategoryDistribution(storeIds),
+    getSellerOrderStatus(storeIds),
+  ]);
 
   const summaryCards: SummaryCard[] = [
     {
@@ -361,5 +712,8 @@ export async function getSellerDashboardData(
     summaryCards,
     lowStockProducts,
     pendingOrders,
+    revenueTrend,
+    categoryDistribution,
+    orderStatus,
   };
 }
