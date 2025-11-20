@@ -195,11 +195,10 @@ export async function DELETE(
           { status: 500 }
         );
       }
-    }
-
-    if (deleteError) {
+    } else if (archiveError) {
+      // If archive operation itself had an error (not just column missing)
       return NextResponse.json(
-        { error: deleteError.message },
+        { error: archiveError.message },
         { status: 500 }
       );
     }
