@@ -39,7 +39,21 @@ export default async function SellerDashboardPage({
   const selectedStoreId = searchParamsData.store;
 
   // Get dashboard data (currently shows all stores, will be filtered by selectedStoreId in future)
-  const dashboardData = await getSellerDashboardData(user.id);
+  let dashboardData;
+  try {
+    dashboardData = await getSellerDashboardData(user.id);
+  } catch (error) {
+    console.error("Error fetching seller dashboard data:", error);
+    // Return empty dashboard data on error
+    dashboardData = {
+      summaryCards: [],
+      lowStockProducts: [],
+      pendingOrders: [],
+      revenueTrend: [],
+      categoryDistribution: [],
+      orderStatus: [],
+    };
+  }
 
   return (
     <SellerDashboardLayout>
