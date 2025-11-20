@@ -19,7 +19,7 @@ export default async function DashboardPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params();
+  const { locale } = await params;
   const supabase = await createClient();
   const {
     data: { user },

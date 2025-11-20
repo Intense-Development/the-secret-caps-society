@@ -11,7 +11,7 @@ export default async function SellerOrderDetailPage({
   params: Promise<{ locale: string; id: string }>;
   searchParams: Promise<{ storeId?: string }>;
 }) {
-  const { locale, id } = await params();
+  const { locale, id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

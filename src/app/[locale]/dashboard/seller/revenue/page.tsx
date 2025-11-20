@@ -14,7 +14,7 @@ export default async function SellerRevenuePage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params();
+  const { locale } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

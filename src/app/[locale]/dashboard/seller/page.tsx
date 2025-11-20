@@ -11,7 +11,7 @@ export default async function SellerDashboardPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ store?: string }>;
 }) {
-  const { locale } = await params();
+  const { locale } = await params;
   const supabase = await createClient();
   const {
     data: { user },

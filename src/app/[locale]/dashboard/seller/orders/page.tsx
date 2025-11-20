@@ -9,7 +9,7 @@ export default async function SellerOrdersPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params();
+  const { locale } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
