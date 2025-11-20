@@ -173,12 +173,29 @@ export async function DELETE(
       );
     }
 
-    // For now, delete the product. Once archived field exists, we'll set archived = true
-    const { error: deleteError } = await supabase
+    // Try to archive first (if archived field exists), otherwise delete
+    // Check if archived column exists by trying to update it
+    const { error: archiveError } = await supabase
       .from("products")
-      .delete()
+      .update({ archived: true })
       .eq("id", id)
       .eq("store_id", storeId);
+
+    // If archive fails (column doesn't exist), fall back to delete
+    if (archiveError) {
+      const { error: deleteError } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id)
+        .eq("store_id", storeId);
+
+      if (deleteError) {
+        return NextResponse.json(
+          { error: deleteError.message },
+          { status: 500 }
+        );
+      }
+    }
 
     if (deleteError) {
       return NextResponse.json(

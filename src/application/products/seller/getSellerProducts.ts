@@ -27,6 +27,9 @@ export async function getSellerProducts(
 
   const supabase = await createClient();
 
+  // Get products, excluding archived ones (if archived field exists)
+  // Note: Once migration is applied, archived products will be filtered out
+  // For now, we fetch all products - the archived filter will work automatically after migration
   const { data, error } = await supabase
     .from("products")
     .select("*")

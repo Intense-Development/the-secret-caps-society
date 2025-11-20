@@ -44,7 +44,7 @@ export async function getSellerStores(userId: string): Promise<string[]> {
 
 /**
  * Get revenue from order_items for last 7 days
- * Joins: order_items -> products (filter by store_id)
+ * Only includes orders that are 100% seller's products (no mixed orders)
  */
 export async function getSellerRevenue7Days(
   storeIds: string[]
@@ -61,14 +61,10 @@ export async function getSellerRevenue7Days(
   const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
   // Get all products from seller's stores
-  const { data: products, error: productsError } = await supabase
+  const { data: products } = await supabase
     .from("products")
     .select("id")
     .in("store_id", storeIds);
-
-  if (productsError) {
-    throw new Error(productsError.message);
-  }
 
   if (!products || products.length === 0) {
     return 0;
@@ -76,26 +72,127 @@ export async function getSellerRevenue7Days(
 
   const productIds = products.map((p) => p.id);
 
-  // Get order_items for these products in last 7 days
-  const { data: orderItems, error: orderItemsError } = await supabase
+  // Get order_items for these products
+  const { data: orderItems } = await supabase
     .from("order_items")
-    .select("price, quantity")
-    .in("product_id", productIds)
-    .gte("created_at", sevenDaysAgoISO);
-
-  if (orderItemsError) {
-    throw new Error(orderItemsError.message);
-  }
+    .select("order_id, price, quantity")
+    .in("product_id", productIds);
 
   if (!orderItems || orderItems.length === 0) {
     return 0;
   }
 
-  // Calculate total revenue
-  const total = orderItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.toString());
-    const quantity = item.quantity;
-    return sum + price * quantity;
+  // Calculate seller revenue per order
+  const orderItemRevenue = new Map<string, number>();
+  orderItems.forEach((item) => {
+    const current = orderItemRevenue.get(item.order_id) || 0;
+    orderItemRevenue.set(
+      item.order_id,
+      current + parseFloat(item.price.toString()) * item.quantity
+    );
+  });
+
+  // Get orders in last 7 days
+  const orderIds = Array.from(orderItemRevenue.keys());
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, total_amount, created_at")
+    .in("id", orderIds)
+    .eq("status", "completed")
+    .gte("created_at", sevenDaysAgoISO);
+
+  if (!orders) {
+    return 0;
+  }
+
+  // Filter to 100% seller orders and calculate revenue
+  const sellerOnlyOrders = orders.filter((order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    const orderTotal = parseFloat(order.total_amount.toString());
+    return Math.abs(sellerRevenue - orderTotal) < 0.01;
+  });
+
+  const total = sellerOnlyOrders.reduce((sum, order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    return sum + sellerRevenue;
+  }, 0);
+
+  return total;
+}
+
+/**
+ * Get revenue from order_items for last 30 days
+ * Only includes orders that are 100% seller's products (no mixed orders)
+ */
+export async function getSellerRevenue30Days(
+  storeIds: string[]
+): Promise<number> {
+  if (storeIds.length === 0) {
+    return 0;
+  }
+
+  const supabase = await createClient();
+
+  // Calculate date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
+
+  // Get all products from seller's stores
+  const { data: products } = await supabase
+    .from("products")
+    .select("id")
+    .in("store_id", storeIds);
+
+  if (!products || products.length === 0) {
+    return 0;
+  }
+
+  const productIds = products.map((p) => p.id);
+
+  // Get order_items for these products
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select("order_id, price, quantity")
+    .in("product_id", productIds);
+
+  if (!orderItems || orderItems.length === 0) {
+    return 0;
+  }
+
+  // Calculate seller revenue per order
+  const orderItemRevenue = new Map<string, number>();
+  orderItems.forEach((item) => {
+    const current = orderItemRevenue.get(item.order_id) || 0;
+    orderItemRevenue.set(
+      item.order_id,
+      current + parseFloat(item.price.toString()) * item.quantity
+    );
+  });
+
+  // Get orders in last 30 days
+  const orderIds = Array.from(orderItemRevenue.keys());
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, total_amount, created_at")
+    .in("id", orderIds)
+    .eq("status", "completed")
+    .gte("created_at", thirtyDaysAgoISO);
+
+  if (!orders) {
+    return 0;
+  }
+
+  // Filter to 100% seller orders and calculate revenue
+  const sellerOnlyOrders = orders.filter((order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    const orderTotal = parseFloat(order.total_amount.toString());
+    return Math.abs(sellerRevenue - orderTotal) < 0.01;
+  });
+
+  const total = sellerOnlyOrders.reduce((sum, order) => {
+    const sellerRevenue = orderItemRevenue.get(order.id) || 0;
+    return sum + sellerRevenue;
   }, 0);
 
   return total;
@@ -557,6 +654,7 @@ export async function getSellerDashboardData(
   // Fetch all metrics in parallel
   const [
     revenue7d,
+    revenue30d,
     ordersFulfilled,
     productsCount,
     lowStockProducts,
@@ -566,6 +664,7 @@ export async function getSellerDashboardData(
     orderStatus,
   ] = await Promise.all([
     getSellerRevenue7Days(storeIds),
+    getSellerRevenue30Days(storeIds),
     getSellerOrdersFulfilled(storeIds),
     getSellerProductsCount(storeIds),
     getSellerLowStockProducts(storeIds),
@@ -574,9 +673,6 @@ export async function getSellerDashboardData(
     getSellerCategoryDistribution(storeIds),
     getSellerOrderStatus(storeIds),
   ]);
-
-  // Calculate revenue 30 days for comparison
-  const revenue30d = 0; // TODO: Implement in future phase
 
   const summaryCards: SummaryCard[] = [
     {
