@@ -35,8 +35,8 @@ export default async function SellerDashboardPage({
   }
 
   // Get selected store from search params (if provided)
-  const params = await searchParams;
-  const selectedStoreId = params.store;
+  const searchParamsData = await searchParams;
+  const selectedStoreId = searchParamsData.store;
 
   // Get dashboard data (currently shows all stores, will be filtered by selectedStoreId in future)
   const dashboardData = await getSellerDashboardData(user.id);

@@ -51,11 +51,11 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <LocaleHtmlAttributes />
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <QueryProvider>
           <CartProvider>
             <TooltipProvider>
+              <LocaleHtmlAttributes />
               <Toaster />
               <Sonner />
               {children}
