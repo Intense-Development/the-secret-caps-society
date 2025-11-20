@@ -9,6 +9,7 @@ const mockSupabase = {
   eq: jest.fn(),
   ilike: jest.fn(),
   or: jest.fn(),
+  in: jest.fn(),
   limit: jest.fn(),
   auth: {
     getUser: jest.fn(),
@@ -78,7 +79,8 @@ describe("POST /api/seller/search", () => {
     mockSupabase.from.mockReturnValue(mockSupabase);
     mockSupabase.select.mockReturnValue(mockSupabase);
     mockSupabase.eq.mockReturnValue(mockSupabase);
-    mockSupabase.in.mockResolvedValue({ data: mockOrderItems, error: null });
+    mockSupabase.in.mockReturnValue(mockSupabase);
+    mockSupabase.limit.mockResolvedValue({ data: mockOrderItems, error: null });
 
     const request = new NextRequest("http://localhost/api/seller/search", {
       method: "POST",
@@ -158,4 +160,3 @@ describe("POST /api/seller/search", () => {
     expect(data.results).toEqual([]);
   });
 });
-
