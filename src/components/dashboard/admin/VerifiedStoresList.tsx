@@ -36,19 +36,19 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { format } from "date-fns";
-import { Check, X, ExternalLink, Loader2 } from "lucide-react";
+import { Check, X, ExternalLink, Edit, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export type PendingStore = {
+export type VerifiedStore = {
   id: string;
   name: string;
   owner: string;
-  submittedAt: Date;
-  category: string;
+  verifiedAt: Date;
+  productsCount?: number;
 };
 
-interface PendingStoresListProps {
-  stores: PendingStore[];
+interface VerifiedStoresListProps {
+  stores: VerifiedStore[];
   totalCount?: number;
   page?: number;
   onPageChange?: (page: number) => void;
@@ -58,11 +58,11 @@ interface PendingStoresListProps {
 }
 
 /**
- * Pending Stores List Component
- * Displays stores awaiting approval with action buttons
- * Supports pagination for browsing all pending stores
+ * Verified Stores List Component
+ * Displays verified stores with action buttons (View, Revoke, Edit)
+ * Supports pagination for browsing all verified stores
  */
-export function PendingStoresList({
+export function VerifiedStoresList({
   stores,
   totalCount,
   page = 1,
@@ -70,68 +70,33 @@ export function PendingStoresList({
   onRefresh,
   itemsPerPage = 15,
   loading = false,
-}: PendingStoresListProps) {
+}: VerifiedStoresListProps) {
   const t = useTranslations("admin.dashboard");
   const router = useRouter();
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
-  const handleApprove = async (storeId: string) => {
+  const handleRevoke = async (storeId: string) => {
     setProcessingIds((prev) => new Set(prev).add(storeId));
     try {
-      const response = await fetch(`/api/admin/stores/${storeId}/approve`, {
+      const response = await fetch(`/api/admin/stores/${storeId}/revoke`, {
         method: "POST",
       });
 
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Store approved successfully");
+        toast.success(t("revokeSuccess") || "Store verification revoked successfully");
         if (onRefresh) {
           onRefresh();
         } else {
           router.refresh();
         }
       } else {
-        toast.error(data.error || "Failed to approve store");
+        toast.error(data.error || t("revokeError") || "Failed to revoke verification");
       }
     } catch (error) {
-      console.error("Error approving store:", error);
-      toast.error("Failed to approve store");
-    } finally {
-      setProcessingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(storeId);
-        return next;
-      });
-    }
-  };
-
-  const handleReject = async (storeId: string) => {
-    setProcessingIds((prev) => new Set(prev).add(storeId));
-    try {
-      const response = await fetch(`/api/admin/stores/${storeId}/reject`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ reason: "Rejected from dashboard" }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success("Store rejected");
-        if (onRefresh) {
-          onRefresh();
-        } else {
-          router.refresh();
-        }
-      } else {
-        toast.error(data.error || "Failed to reject store");
-      }
-    } catch (error) {
-      console.error("Error rejecting store:", error);
-      toast.error("Failed to reject store");
+      console.error("Error revoking verification:", error);
+      toast.error(t("revokeError") || "Failed to revoke verification");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -151,12 +116,12 @@ export function PendingStoresList({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t("pendingStores")}</CardTitle>
-          <CardDescription>{t("pendingStoresDesc")}</CardDescription>
+          <CardTitle>{t("verifiedStores")}</CardTitle>
+          <CardDescription>{t("verifiedStoresDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-muted-foreground py-8">
-            {t("noPendingStores")}
+            {t("noVerifiedStores")}
           </p>
         </CardContent>
       </Card>
@@ -164,19 +129,18 @@ export function PendingStoresList({
   }
 
   return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("pendingStores")}</CardTitle>
-          <CardDescription>{t("pendingStoresDesc")}</CardDescription>
-        </CardHeader>
-      <CardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("verifiedStores")}</CardTitle>
+        <CardDescription>{t("verifiedStoresDesc")}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("table.storeName")}</TableHead>
               <TableHead>{t("table.owner")}</TableHead>
-              <TableHead>{t("table.category")}</TableHead>
-              <TableHead>{t("table.submitted")}</TableHead>
+              <TableHead>{t("verifiedAt")}</TableHead>
               <TableHead className="text-right">{t("table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -185,50 +149,27 @@ export function PendingStoresList({
               <TableRow key={store.id}>
                 <TableCell className="font-medium">{store.name}</TableCell>
                 <TableCell>{store.owner}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{store.category}</Badge>
-                </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {format(store.submittedAt, "MMM d, yyyy")}
+                  {format(store.verifiedAt, "MMM d, yyyy")}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
+                    <Badge variant="default" className="gap-1 bg-green-600">
+                      <Check className="h-3 w-3" />
+                      {t("verified")}
+                    </Badge>
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/dashboard/admin/stores/${store.id}`}>
                         <ExternalLink className="h-4 w-4 mr-1" />
                         {t("viewDetails")}
                       </Link>
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          disabled={processingIds.has(store.id)}
-                        >
-                          {processingIds.has(store.id) ? (
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                          ) : (
-                            <Check className="h-4 w-4 mr-1" />
-                          )}
-                          {t("approve")}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t("approveConfirmTitle")}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("approveConfirmDesc", { name: store.name })}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleApprove(store.id)}>
-                            {t("approve")}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/dashboard/admin/stores/${store.id}`}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        {t("editStore")}
+                      </Link>
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -241,20 +182,20 @@ export function PendingStoresList({
                           ) : (
                             <X className="h-4 w-4 mr-1" />
                           )}
-                          {t("reject")}
+                          {t("revokeVerification")}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>{t("rejectConfirmTitle")}</AlertDialogTitle>
+                          <AlertDialogTitle>{t("revokeConfirmTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            {t("rejectConfirmDesc", { name: store.name })}
+                            {t("revokeConfirmDesc", { name: store.name })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleReject(store.id)}>
-                            {t("reject")}
+                          <AlertDialogAction onClick={() => handleRevoke(store.id)}>
+                            {t("revokeVerification")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -268,7 +209,7 @@ export function PendingStoresList({
 
         {/* Pagination */}
         {totalCount && totalCount > itemsPerPage && onPageChange && (
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
               {t("showingStores", {
                 start: startIndex,
