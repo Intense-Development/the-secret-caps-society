@@ -5,6 +5,7 @@ import type { CategoryDistributionData } from "@/components/dashboard/admin/Cate
 import type { OrderStatusData } from "@/components/dashboard/admin/OrderStatusChart";
 import type { StoreLocation } from "@/components/dashboard/admin/StoreLocationsMap";
 import type { PendingStore } from "@/components/dashboard/admin/PendingStoresList";
+import type { VerifiedStore } from "@/components/dashboard/admin/VerifiedStoresList";
 import type { RecentActivity } from "@/components/dashboard/admin/RecentActivityList";
 import type { TopStore } from "@/components/dashboard/admin/TopStoresList";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
@@ -16,6 +17,8 @@ export type AdminDashboardData = {
   orderStatus: OrderStatusData[];
   storeLocations: StoreLocation[];
   pendingStores: PendingStore[];
+  verifiedStores: VerifiedStore[];
+  verifiedStoresTotal: number;
   recentActivities: RecentActivity[];
   topStores: TopStore[];
 };
@@ -56,6 +59,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       categoryDistributionResult,
       orderStatusResult,
       verifiedStoresResult,
+      verifiedStoresListResult,
+      verifiedStoresCountResult,
       pendingStoresListResult,
       recentStoresResult,
       recentOrdersResult,
@@ -100,6 +105,31 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         .select("id, name, city, state")
         .eq("verification_status", "verified")
         .limit(50),
+
+      // Verified Stores List (first page - 15 stores)
+      supabase
+        .from("stores")
+        .select(
+          `
+          id,
+          name,
+          verified_at,
+          products_count,
+          owner:users!stores_owner_id_fkey (
+            name,
+            email
+          )
+        `
+        )
+        .eq("verification_status", "verified")
+        .order("verified_at", { ascending: false })
+        .range(0, 14), // First page: 0-14 (15 stores)
+
+      // Verified Stores Total Count
+      supabase
+        .from("stores")
+        .select("id", { count: "exact", head: true })
+        .eq("verification_status", "verified"),
 
       // Pending Stores List
       supabase
@@ -369,6 +399,28 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         };
       }) || [];
 
+    // Process verified stores
+    const verifiedStores: VerifiedStore[] =
+      verifiedStoresListResult.data?.map((store) => {
+        // Handle owner as array (Supabase relationship) or single object
+        const ownerData = Array.isArray(store.owner)
+          ? store.owner[0]
+          : store.owner;
+        const ownerName =
+          (ownerData as { name: string; email: string } | null)?.name ||
+          "Unknown";
+
+        return {
+          id: store.id,
+          name: store.name,
+          owner: ownerName,
+          verifiedAt: new Date(store.verified_at || store.created_at),
+          productsCount: store.products_count || 0,
+        };
+      }) || [];
+
+    const verifiedStoresTotal = verifiedStoresCountResult.count || 0;
+
     // Process recent activities
     const recentActivities: RecentActivity[] = [];
 
@@ -503,6 +555,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       orderStatus,
       storeLocations,
       pendingStores,
+      verifiedStores,
+      verifiedStoresTotal,
       recentActivities: topRecentActivities,
       topStores,
     };
@@ -516,6 +570,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       orderStatus: [],
       storeLocations: [],
       pendingStores: [],
+      verifiedStores: [],
+      verifiedStoresTotal: 0,
       recentActivities: [],
       topStores: [],
     };

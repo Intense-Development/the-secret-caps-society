@@ -10,6 +10,7 @@ import { CategoryDistributionChart } from "./CategoryDistributionChart";
 import { OrderStatusChart } from "./OrderStatusChart";
 import { StoreLocationsMap } from "./StoreLocationsMap";
 import { PendingStoresList } from "./PendingStoresList";
+import { VerifiedStoresList } from "./VerifiedStoresList";
 import { RecentActivityList } from "./RecentActivityList";
 import { TopStoresList } from "./TopStoresList";
 import {
@@ -164,7 +165,7 @@ export function AdminDashboardClient({
       </div>
 
       {/* Lists Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Pending Stores List */}
         <div className="lg:col-span-1">
           <PendingStoresList stores={dashboardData.pendingStores} />
@@ -178,6 +179,16 @@ export function AdminDashboardClient({
         {/* Top Stores List */}
         <div className="lg:col-span-1">
           <TopStoresList stores={dashboardData.topStores} />
+        </div>
+
+        {/* Verified Stores List */}
+        <div className="lg:col-span-1">
+          <VerifiedStoresList
+            stores={dashboardData.verifiedStores}
+            totalCount={dashboardData.verifiedStoresTotal}
+            page={1}
+            itemsPerPage={15}
+          />
         </div>
       </div>
     </div>
