@@ -114,6 +114,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           id,
           name,
           verified_at,
+          created_at,
           products_count,
           owner:users!stores_owner_id_fkey (
             name,
