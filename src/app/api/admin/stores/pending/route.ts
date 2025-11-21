@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         id,
         name,
         created_at,
-        owner:users!stores_owner_id_fkey (
+        owner:users!owner_id (
           name,
           email
         )
@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
       .eq("verification_status", "pending")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
-
     if (error) {
       console.error("Error fetching pending stores:", error);
       return NextResponse.json(
@@ -101,4 +100,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

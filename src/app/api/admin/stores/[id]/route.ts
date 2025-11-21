@@ -40,7 +40,7 @@ export async function GET(
       .select(
         `
         *,
-        owner:users!stores_owner_id_fkey (
+        owner:users!owner_id (
           id,
           name,
           email
