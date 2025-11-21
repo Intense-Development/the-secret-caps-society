@@ -26,6 +26,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { format } from "date-fns";
 import { Check, X, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,13 +49,28 @@ export type PendingStore = {
 
 interface PendingStoresListProps {
   stores: PendingStore[];
+  totalCount?: number;
+  page?: number;
+  onPageChange?: (page: number) => void;
+  onRefresh?: () => void;
+  itemsPerPage?: number;
+  loading?: boolean;
 }
 
 /**
  * Pending Stores List Component
  * Displays stores awaiting approval with action buttons
+ * Supports pagination for browsing all pending stores
  */
-export function PendingStoresList({ stores }: PendingStoresListProps) {
+export function PendingStoresList({
+  stores,
+  totalCount,
+  page = 1,
+  onPageChange,
+  onRefresh,
+  itemsPerPage = 15,
+  loading = false,
+}: PendingStoresListProps) {
   const t = useTranslations("admin.dashboard");
   const router = useRouter();
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
@@ -62,7 +86,11 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
 
       if (data.success) {
         toast.success("Store approved successfully");
-        router.refresh();
+        if (onRefresh) {
+          onRefresh();
+        } else {
+          router.refresh();
+        }
       } else {
         toast.error(data.error || "Failed to approve store");
       }
@@ -93,7 +121,11 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
 
       if (data.success) {
         toast.success("Store rejected");
-        router.refresh();
+        if (onRefresh) {
+          onRefresh();
+        } else {
+          router.refresh();
+        }
       } else {
         toast.error(data.error || "Failed to reject store");
       }
@@ -109,7 +141,13 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
     }
   };
 
-  if (stores.length === 0) {
+  const totalPages = totalCount && itemsPerPage ? Math.ceil(totalCount / itemsPerPage) : 1;
+  const startIndex = totalCount ? (page - 1) * itemsPerPage + 1 : 0;
+  const endIndex = totalCount
+    ? Math.min(page * itemsPerPage, totalCount)
+    : stores.length;
+
+  if (stores.length === 0 && !loading) {
     return (
       <Card>
         <CardHeader>
@@ -227,6 +265,98 @@ export function PendingStoresList({ stores }: PendingStoresListProps) {
             ))}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {totalCount && totalCount > itemsPerPage && onPageChange && (
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-muted-foreground">
+              {t("showingStores", {
+                start: startIndex,
+                end: endIndex,
+                total: totalCount,
+              })}
+            </p>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page > 1) onPageChange(page - 1);
+                    }}
+                    className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                {(() => {
+                  const pagesToShow: (number | string)[] = [];
+
+                  // Always show first page
+                  pagesToShow.push(1);
+
+                  // Add ellipsis if needed before current page
+                  if (page > 3) {
+                    pagesToShow.push("ellipsis-start");
+                  }
+
+                  // Show pages around current page
+                  for (let p = Math.max(2, page - 1); p <= Math.min(totalPages - 1, page + 1); p++) {
+                    if (!pagesToShow.includes(p)) {
+                      pagesToShow.push(p);
+                    }
+                  }
+
+                  // Add ellipsis if needed after current page
+                  if (page < totalPages - 2) {
+                    pagesToShow.push("ellipsis-end");
+                  }
+
+                  // Always show last page if more than 1 page
+                  if (totalPages > 1 && !pagesToShow.includes(totalPages)) {
+                    pagesToShow.push(totalPages);
+                  }
+
+                  return pagesToShow.map((p, idx) => {
+                    if (p === "ellipsis-start" || p === "ellipsis-end") {
+                      return (
+                        <PaginationItem key={`ellipsis-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onPageChange(p as number);
+                          }}
+                          isActive={p === page}
+                          className="cursor-pointer"
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  });
+                })()}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page < totalPages) onPageChange(page + 1);
+                    }}
+                    className={
+                      page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

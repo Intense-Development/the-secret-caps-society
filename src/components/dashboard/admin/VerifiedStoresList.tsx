@@ -52,6 +52,7 @@ interface VerifiedStoresListProps {
   totalCount?: number;
   page?: number;
   onPageChange?: (page: number) => void;
+  onRefresh?: () => void;
   itemsPerPage?: number;
   loading?: boolean;
 }
@@ -66,6 +67,7 @@ export function VerifiedStoresList({
   totalCount,
   page = 1,
   onPageChange,
+  onRefresh,
   itemsPerPage = 15,
   loading = false,
 }: VerifiedStoresListProps) {
@@ -84,7 +86,11 @@ export function VerifiedStoresList({
 
       if (data.success) {
         toast.success(t("revokeSuccess") || "Store verification revoked successfully");
-        router.refresh();
+        if (onRefresh) {
+          onRefresh();
+        } else {
+          router.refresh();
+        }
       } else {
         toast.error(data.error || t("revokeError") || "Failed to revoke verification");
       }

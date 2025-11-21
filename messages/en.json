@@ -136,6 +136,12 @@
       "cancel": "Cancel"
     },
     "stores": {
+      "title": "Stores",
+      "description": "Manage and verify store applications",
+      "pendingStores": "Pending Stores",
+      "verifiedStores": "Verified Stores",
+      "storeStatusUpdated": "Store status updated",
+      "newStoreApplication": "New store application",
       "storeDetails": "Store Details",
       "verificationStatus": "Verification Status",
       "approve": "Approve",
