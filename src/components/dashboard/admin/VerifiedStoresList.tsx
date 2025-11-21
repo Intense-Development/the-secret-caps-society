@@ -53,6 +53,7 @@ interface VerifiedStoresListProps {
   page?: number;
   onPageChange?: (page: number) => void;
   itemsPerPage?: number;
+  loading?: boolean;
 }
 
 /**
@@ -66,6 +67,7 @@ export function VerifiedStoresList({
   page = 1,
   onPageChange,
   itemsPerPage = 15,
+  loading = false,
 }: VerifiedStoresListProps) {
   const t = useTranslations("admin.dashboard");
   const router = useRouter();
@@ -104,7 +106,7 @@ export function VerifiedStoresList({
     ? Math.min(page * itemsPerPage, totalCount)
     : stores.length;
 
-  if (stores.length === 0) {
+  if (stores.length === 0 && !loading) {
     return (
       <Card>
         <CardHeader>
