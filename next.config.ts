@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     domains: ["images.unsplash.com"],
   },
   transpilePackages: ["next-intl"],
+  serverExternalPackages: ["@supabase/supabase-js"],
 };
 
 // Apply the plugin
