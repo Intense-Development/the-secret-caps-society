@@ -61,14 +61,17 @@ export async function GET(request: NextRequest) {
 
     // Process stores
     const processedStores =
-      stores?.map((store) => {
-        // Handle owner as array (Supabase relationship) or single object
-        const ownerData = Array.isArray(store.owner)
-          ? store.owner[0]
-          : store.owner;
-        const ownerName =
-          (ownerData as { name: string; email: string } | null)?.name ||
-          "Unknown";
+      stores?.map((store: any) => {
+        // Handle owner - Supabase can return it as an object, array, or null
+        let ownerName = "Unknown";
+        
+        if (store.owner) {
+          if (Array.isArray(store.owner)) {
+            ownerName = store.owner[0]?.name || "Unknown";
+          } else if (typeof store.owner === 'object') {
+            ownerName = store.owner.name || "Unknown";
+          }
+        }
 
         return {
           id: store.id,
