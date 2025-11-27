@@ -81,41 +81,54 @@ export async function GET(request: NextRequest) {
     let ownersMap: Record<string, { name: string; email: string }> = {};
     
     if (ownerIds.length > 0) {
-      const { data: owners } = await supabase
+      const { data: owners, error: ownersError } = await supabase
         .from("users")
         .select("id, name, email")
         .in("id", ownerIds);
       
-      if (owners) {
+      if (ownersError) {
+        console.error("Error fetching owners:", ownersError);
+      }
+      
+      if (owners && owners.length > 0) {
         ownersMap = owners.reduce((acc, owner) => {
           acc[owner.id] = { name: owner.name, email: owner.email };
           return acc;
         }, {} as Record<string, { name: string; email: string }>);
+        console.log(`Fetched ${owners.length} owners for ${ownerIds.length} stores`);
+      } else {
+        console.log(`No owners found for ${ownerIds.length} owner IDs`);
       }
+    } else {
+      console.log("No owner IDs found in stores");
     }
 
     const processedStores =
       stores?.map((store: StoreWithOwner) => {
-        // Handle owner - Supabase can return it as an object, array, or null
-        let ownerName = "Unknown";
+        // Try to get owner name from relationship query first
+        let ownerName: string | undefined;
         
         if (store.owner) {
-          if (Array.isArray(store.owner)) {
-            ownerName = store.owner[0]?.name || "Unknown";
+          if (Array.isArray(store.owner) && store.owner.length > 0) {
+            ownerName = store.owner[0]?.name;
           } else if (typeof store.owner === 'object' && store.owner !== null) {
-            ownerName = (store.owner as { name?: string }).name || "Unknown";
+            ownerName = (store.owner as { name?: string }).name;
           }
         }
         
-        // Fallback: Use owner_id to fetch from map if relationship didn't work
-        if (ownerName === "Unknown" && store.owner_id && ownersMap[store.owner_id]) {
-          ownerName = ownersMap[store.owner_id].name;
+        // Fallback: Always use owner_id to fetch from map if relationship didn't work or returned no name
+        if (!ownerName && store.owner_id) {
+          if (ownersMap[store.owner_id]) {
+            ownerName = ownersMap[store.owner_id].name;
+          } else {
+            console.log(`Owner not found in map for store ${store.id}, owner_id: ${store.owner_id}`);
+          }
         }
 
         return {
           id: store.id,
           name: store.name,
-          owner: ownerName,
+          owner: ownerName || "Unknown",
           verifiedAt: (store.verified_at || store.created_at) as string,
           productsCount: store.products_count || 0,
         };

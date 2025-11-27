@@ -89,26 +89,26 @@ export async function GET(request: NextRequest) {
 
     const processedStores =
       stores?.map((store: StoreWithOwner) => {
-        // Handle owner - Supabase can return it as an object, array, or null
-        let ownerName = "Unknown";
+        // Try to get owner name from relationship query first
+        let ownerName: string | undefined;
         
         if (store.owner) {
-          if (Array.isArray(store.owner)) {
-            ownerName = store.owner[0]?.name || "Unknown";
+          if (Array.isArray(store.owner) && store.owner.length > 0) {
+            ownerName = store.owner[0]?.name;
           } else if (typeof store.owner === 'object' && store.owner !== null) {
-            ownerName = (store.owner as { name?: string }).name || "Unknown";
+            ownerName = (store.owner as { name?: string }).name;
           }
         }
         
-        // Fallback: Use owner_id to fetch from map if relationship didn't work
-        if (ownerName === "Unknown" && store.owner_id && ownersMap[store.owner_id]) {
+        // Fallback: Always use owner_id to fetch from map if relationship didn't work or returned no name
+        if (!ownerName && store.owner_id && ownersMap[store.owner_id]) {
           ownerName = ownersMap[store.owner_id].name;
         }
 
         return {
           id: store.id,
           name: store.name,
-          owner: ownerName,
+          owner: ownerName || "Unknown",
           submittedAt: store.created_at,
           category: "General", // We don't have category in stores table
         };
