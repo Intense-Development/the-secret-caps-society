@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["images.unsplash.com"],
   },
+  transpilePackages: ["next-intl"],
 };
 
 // Apply the plugin

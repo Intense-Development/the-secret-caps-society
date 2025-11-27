@@ -1,4 +1,3 @@
-import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing-config";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -8,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LocaleHtmlAttributes } from "@/components/LocaleHtmlAttributes";
+import { NextIntlProvider } from "@/components/NextIntlProvider";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -50,7 +50,7 @@ export default async function LocaleLayout({
   }
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlProvider locale={locale} messages={messages}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <QueryProvider>
           <CartProvider>
@@ -63,7 +63,7 @@ export default async function LocaleLayout({
           </CartProvider>
         </QueryProvider>
       </ThemeProvider>
-    </NextIntlClientProvider>
+    </NextIntlProvider>
   );
 }
 
