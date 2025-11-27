@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
         id,
         name,
         created_at,
+        owner_id,
         owner:users!stores_owner_id_fkey (
           name,
           email
@@ -64,8 +65,27 @@ export async function GET(request: NextRequest) {
       id: string;
       name: string;
       created_at: string;
+      owner_id: string;
       owner: { name: string; email: string } | { name: string; email: string }[] | null;
     };
+
+    // If owner relationship didn't work, fetch owners separately
+    const ownerIds = stores?.map((s: StoreWithOwner) => s.owner_id).filter(Boolean) || [];
+    let ownersMap: Record<string, { name: string; email: string }> = {};
+    
+    if (ownerIds.length > 0) {
+      const { data: owners } = await supabase
+        .from("users")
+        .select("id, name, email")
+        .in("id", ownerIds);
+      
+      if (owners) {
+        ownersMap = owners.reduce((acc, owner) => {
+          acc[owner.id] = { name: owner.name, email: owner.email };
+          return acc;
+        }, {} as Record<string, { name: string; email: string }>);
+      }
+    }
 
     const processedStores =
       stores?.map((store: StoreWithOwner) => {
@@ -75,9 +95,14 @@ export async function GET(request: NextRequest) {
         if (store.owner) {
           if (Array.isArray(store.owner)) {
             ownerName = store.owner[0]?.name || "Unknown";
-          } else if (typeof store.owner === 'object') {
-            ownerName = store.owner.name || "Unknown";
+          } else if (typeof store.owner === 'object' && store.owner !== null) {
+            ownerName = (store.owner as { name?: string }).name || "Unknown";
           }
+        }
+        
+        // Fallback: Use owner_id to fetch from map if relationship didn't work
+        if (ownerName === "Unknown" && store.owner_id && ownersMap[store.owner_id]) {
+          ownerName = ownersMap[store.owner_id].name;
         }
 
         return {

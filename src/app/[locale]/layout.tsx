@@ -23,11 +23,13 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   // Ensure that the incoming `locale` is valid
-  const isValidLocale = (loc: string): loc is (typeof routing.locales)[number] => {
+  const isValidLocale = (
+    loc: string
+  ): loc is (typeof routing.locales)[number] => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return routing.locales.includes(loc as any);
   };
-  
+
   if (!isValidLocale(locale)) {
     notFound();
   }
@@ -44,7 +46,10 @@ export default async function LocaleLayout({
     try {
       messages = (await import(`../../../messages/en.json`)).default;
     } catch (fallbackError) {
-      console.error('Failed to load English messages as fallback', fallbackError);
+      console.error(
+        "Failed to load English messages as fallback",
+        fallbackError
+      );
       messages = {}; // Empty object as last resort
     }
   }
@@ -66,4 +71,3 @@ export default async function LocaleLayout({
     </NextIntlProvider>
   );
 }
-
