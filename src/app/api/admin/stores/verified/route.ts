@@ -63,8 +63,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Process stores
+    type StoreWithOwner = {
+      id: string;
+      name: string;
+      verified_at: string | null;
+      created_at: string;
+      products_count: number | null;
+      owner: { name: string; email: string } | { name: string; email: string }[] | null;
+    };
+
     const processedStores =
-      stores?.map((store: any) => {
+      stores?.map((store: StoreWithOwner) => {
         // Handle owner - Supabase can return it as an object, array, or null
         let ownerName = "Unknown";
         
