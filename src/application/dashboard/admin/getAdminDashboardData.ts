@@ -116,7 +116,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           verified_at,
           created_at,
           products_count,
-          owner:users!owner_id (
+          owner:users!stores_owner_id_fkey (
             name,
             email
           )
@@ -140,7 +140,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           id,
           name,
           created_at,
-          owner:users!owner_id (
+          owner:users!stores_owner_id_fkey (
             name,
             email
           )
@@ -158,7 +158,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           id,
           name,
           created_at,
-          owner:users!owner_id (
+          owner:users!stores_owner_id_fkey (
             name
           )
         `

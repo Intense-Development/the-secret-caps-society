@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         id,
         name,
         created_at,
-        owner:users!owner_id (
+        owner:users!stores_owner_id_fkey (
           name,
           email
         )

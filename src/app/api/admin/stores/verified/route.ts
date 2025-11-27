@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         verified_at,
         created_at,
         products_count,
-        owner:users!owner_id (
+        owner:users!stores_owner_id_fkey (
           name,
           email
         )
