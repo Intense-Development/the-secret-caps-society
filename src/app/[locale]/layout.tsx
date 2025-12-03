@@ -1,4 +1,3 @@
-import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing-config";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -8,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LocaleHtmlAttributes } from "@/components/LocaleHtmlAttributes";
+import { NextIntlProvider } from "@/components/NextIntlProvider";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -23,11 +23,13 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   // Ensure that the incoming `locale` is valid
-  const isValidLocale = (loc: string): loc is (typeof routing.locales)[number] => {
+  const isValidLocale = (
+    loc: string
+  ): loc is (typeof routing.locales)[number] => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return routing.locales.includes(loc as any);
   };
-  
+
   if (!isValidLocale(locale)) {
     notFound();
   }
@@ -44,13 +46,16 @@ export default async function LocaleLayout({
     try {
       messages = (await import(`../../../messages/en.json`)).default;
     } catch (fallbackError) {
-      console.error('Failed to load English messages as fallback', fallbackError);
+      console.error(
+        "Failed to load English messages as fallback",
+        fallbackError
+      );
       messages = {}; // Empty object as last resort
     }
   }
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlProvider locale={locale} messages={messages}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <QueryProvider>
           <CartProvider>
@@ -63,7 +68,6 @@ export default async function LocaleLayout({
           </CartProvider>
         </QueryProvider>
       </ThemeProvider>
-    </NextIntlClientProvider>
+    </NextIntlProvider>
   );
 }
-

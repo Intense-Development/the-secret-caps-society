@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
@@ -10,6 +10,7 @@ import { CategoryDistributionChart } from "./CategoryDistributionChart";
 import { OrderStatusChart } from "./OrderStatusChart";
 import { StoreLocationsMap } from "./StoreLocationsMap";
 import { PendingStoresList } from "./PendingStoresList";
+import { VerifiedStoresList, type VerifiedStore } from "./VerifiedStoresList";
 import { RecentActivityList } from "./RecentActivityList";
 import { TopStoresList } from "./TopStoresList";
 import {
@@ -36,6 +37,46 @@ export function AdminDashboardClient({
   const t = useTranslations("admin.dashboard");
   const router = useRouter();
   const [dashboardData] = useState(initialData);
+  const [verifiedStoresPage, setVerifiedStoresPage] = useState(1);
+  const [verifiedStores, setVerifiedStores] = useState<VerifiedStore[]>(
+    initialData.verifiedStores
+  );
+  const [verifiedStoresTotal, setVerifiedStoresTotal] = useState(
+    initialData.verifiedStoresTotal
+  );
+  const [loadingVerifiedStores, setLoadingVerifiedStores] = useState(false);
+
+  // Fetch verified stores when page changes
+  const fetchVerifiedStores = useCallback(
+    async (page: number) => {
+      setLoadingVerifiedStores(true);
+      try {
+        const response = await fetch(
+          `/api/admin/stores/verified?page=${page}&limit=15`
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          // Convert verifiedAt strings to Date objects
+          const storesWithDates = data.stores.map((store: VerifiedStore & { verifiedAt: string }) => ({
+            ...store,
+            verifiedAt: new Date(store.verifiedAt),
+          }));
+          setVerifiedStores(storesWithDates);
+          setVerifiedStoresTotal(data.totalCount);
+          setVerifiedStoresPage(page);
+        } else {
+          toast.error(data.error || "Failed to fetch verified stores");
+        }
+      } catch (error) {
+        console.error("Error fetching verified stores:", error);
+        toast.error("Failed to fetch verified stores");
+      } finally {
+        setLoadingVerifiedStores(false);
+      }
+    },
+    []
+  );
 
   // Handle store changes (approvals, rejections, new stores)
   const handleStoreChange = useCallback(
@@ -47,13 +88,14 @@ export function AdminDashboardClient({
       if (payload.eventType === "UPDATE") {
         const store = payload.new;
         if (store && store.verification_status) {
-          // If a store was approved/rejected, refresh the dashboard
+          // If a store was approved/rejected/revoked, refresh verified stores
           toast.info(t("storeStatusUpdated"), {
             description: t("storeStatusUpdatedDesc", {
               name: String(store.name),
             }),
           });
-          router.refresh();
+          // Refresh verified stores if we're on page 1, otherwise keep current page
+          fetchVerifiedStores(verifiedStoresPage);
         }
       } else if (payload.eventType === "INSERT") {
         // New store added
@@ -63,7 +105,7 @@ export function AdminDashboardClient({
         router.refresh();
       }
     },
-    [router, t]
+    [router, t, fetchVerifiedStores, verifiedStoresPage]
   );
 
   // Handle order changes
@@ -164,7 +206,7 @@ export function AdminDashboardClient({
       </div>
 
       {/* Lists Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Pending Stores List */}
         <div className="lg:col-span-1">
           <PendingStoresList stores={dashboardData.pendingStores} />
@@ -178,6 +220,18 @@ export function AdminDashboardClient({
         {/* Top Stores List */}
         <div className="lg:col-span-1">
           <TopStoresList stores={dashboardData.topStores} />
+        </div>
+
+        {/* Verified Stores List */}
+        <div className="lg:col-span-1">
+          <VerifiedStoresList
+            stores={verifiedStores}
+            totalCount={verifiedStoresTotal}
+            page={verifiedStoresPage}
+            onPageChange={fetchVerifiedStores}
+            itemsPerPage={15}
+            loading={loadingVerifiedStores}
+          />
         </div>
       </div>
     </div>
