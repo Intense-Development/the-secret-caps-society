@@ -56,15 +56,14 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // 3. Generate redirect URL (environment-based with locale)
-    const redirectUrl = 
-      process.env.NEXT_PUBLIC_APP_URL 
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/${routing.defaultLocale}/reset-password`
-        : `${request.nextUrl.origin}/${routing.defaultLocale}/reset-password`
+    // 3. Generate redirect URL through auth callback
+    // Supabase will send user to callback with code, callback exchanges it and redirects
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
+    const callbackUrl = `${baseUrl}/api/auth/callback?next=/${routing.defaultLocale}/reset-password`
 
     // 4. Request password reset email from Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
+      redirectTo: callbackUrl,
     })
 
     // 5. IMPORTANT: Always return success to prevent email enumeration

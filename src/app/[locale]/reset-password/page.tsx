@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,14 +35,12 @@ import {
 
 export default function ResetPassword() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(true);
 
   // Form setup
   const {
@@ -61,81 +58,8 @@ export default function ResetPassword() {
 
   const password = watch("password");
 
-  // Handle Supabase token exchange from email link
-  useEffect(() => {
-    const handleTokenExchange = async () => {
-      const tokenHash = searchParams?.get("token_hash");
-      const type = searchParams?.get("type");
-      const accessToken = searchParams?.get("access_token");
-      const refreshToken = searchParams?.get("refresh_token");
-
-      console.log("[RESET PASSWORD DEBUG]", {
-        hasTokenHash: !!tokenHash,
-        type,
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        allParams: Object.fromEntries(searchParams?.entries() || [])
-      });
-
-      // Supabase might send access_token directly in some configurations
-      if (accessToken && refreshToken) {
-        console.log("Using access_token from URL params");
-        setIsValidating(false);
-        return; // Session should be set automatically by Supabase
-      }
-
-      // If no token params, check if there's already a valid session
-      if (!tokenHash || type !== "recovery") {
-        const supabase = createClient();
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        console.log("[SESSION CHECK]", {
-          hasSession: !!session,
-          sessionError: sessionError?.message
-        });
-
-        if (!session) {
-          setTokenError(
-            "This password reset link is invalid or has expired. Please request a new one."
-          );
-        }
-        setIsValidating(false);
-        return;
-      }
-
-      try {
-        // Exchange the token_hash for a session
-        const supabase = createClient();
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: "recovery",
-        });
-
-        console.log("[TOKEN EXCHANGE]", {
-          success: !error,
-          hasSession: !!data?.session,
-          error: error?.message
-        });
-
-        if (error) {
-          console.error("Token exchange error:", error);
-          setTokenError(
-            "This password reset link has expired or is invalid. Please request a new one."
-          );
-        }
-        // If successful, session is now stored in cookies
-      } catch (error) {
-        console.error("Token validation error:", error);
-        setTokenError(
-          "Unable to validate reset link. Please try requesting a new one."
-        );
-      } finally {
-        setIsValidating(false);
-      }
-    };
-
-    handleTokenExchange();
-  }, [searchParams]);
+  // Note: Token exchange is handled by /api/auth/callback
+  // This page just shows the form - the callback ensures a valid session exists
 
   // Form submission
   const onSubmit = async (data: ResetPasswordInput) => {
@@ -196,23 +120,7 @@ export default function ResetPassword() {
     }
   };
 
-  // Show loading state while validating token
-  if (isValidating) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Validating reset link...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Show error if token is invalid
+  // Show error if token is invalid (set by API response)
   if (tokenError) {
     return (
       <div className="min-h-screen flex flex-col">
