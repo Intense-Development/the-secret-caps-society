@@ -57,16 +57,36 @@ export default function ResetPassword() {
 
   const password = watch("password");
 
-  // Listen for Supabase auth state changes
-  // Supabase automatically processes the token from URL hash
+  // Listen for Supabase auth state changes and debug URL
   useEffect(() => {
+    // Debug: Log what's in the URL
+    if (typeof window !== 'undefined') {
+      console.log('[RESET_PASSWORD_PAGE_LOAD]', {
+        href: window.location.href,
+        search: window.location.search,
+        hash: window.location.hash,
+        hashParams: window.location.hash ? 
+          Object.fromEntries(new URLSearchParams(window.location.hash.substring(1))) : 
+          {}
+      });
+    }
+
     const supabase = createClient();
     
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('[CURRENT_SESSION_ON_LOAD]', {
+        hasSession: !!session,
+        error: error?.message
+      });
+    });
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AUTH_STATE_CHANGE]', { event, hasSession: !!session });
       
       if (event === 'PASSWORD_RECOVERY') {
-        console.log('[PASSWORD_RECOVERY_EVENT]', 'Session ready for password reset');
+        console.log('[PASSWORD_RECOVERY_EVENT]', 'Session created! Ready for password reset');
       }
     });
 
