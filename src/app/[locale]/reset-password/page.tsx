@@ -66,13 +66,34 @@ export default function ResetPassword() {
     const handleTokenExchange = async () => {
       const tokenHash = searchParams?.get("token_hash");
       const type = searchParams?.get("type");
+      const accessToken = searchParams?.get("access_token");
+      const refreshToken = searchParams?.get("refresh_token");
 
-      // If no token params, might already be exchanged or invalid link
+      console.log("[RESET PASSWORD DEBUG]", {
+        hasTokenHash: !!tokenHash,
+        type,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        allParams: Object.fromEntries(searchParams?.entries() || [])
+      });
+
+      // Supabase might send access_token directly in some configurations
+      if (accessToken && refreshToken) {
+        console.log("Using access_token from URL params");
+        setIsValidating(false);
+        return; // Session should be set automatically by Supabase
+      }
+
+      // If no token params, check if there's already a valid session
       if (!tokenHash || type !== "recovery") {
-        // Check if there's already a valid session
         const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        console.log("[SESSION CHECK]", {
+          hasSession: !!session,
+          sessionError: sessionError?.message
+        });
+
         if (!session) {
           setTokenError(
             "This password reset link is invalid or has expired. Please request a new one."
@@ -85,9 +106,15 @@ export default function ResetPassword() {
       try {
         // Exchange the token_hash for a session
         const supabase = createClient();
-        const { error } = await supabase.auth.verifyOtp({
+        const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: "recovery",
+        });
+
+        console.log("[TOKEN EXCHANGE]", {
+          success: !error,
+          hasSession: !!data?.session,
+          error: error?.message
         });
 
         if (error) {
