@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { forgotPasswordSchema } from '@/lib/validations/auth'
+import { routing } from '@/i18n/routing-config'
 
 // Helper for consistent error responses
 function buildErrorResponse(message: string, status = 400) {
@@ -55,11 +56,11 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // 3. Generate redirect URL (environment-based)
+    // 3. Generate redirect URL (environment-based with locale)
     const redirectUrl = 
       process.env.NEXT_PUBLIC_APP_URL 
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`
-        : `${request.nextUrl.origin}/reset-password`
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/${routing.defaultLocale}/reset-password`
+        : `${request.nextUrl.origin}/${routing.defaultLocale}/reset-password`
 
     // 4. Request password reset email from Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
