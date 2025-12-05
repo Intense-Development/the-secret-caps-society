@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,14 +35,12 @@ import {
 
 export default function ResetPassword() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(true);
 
   // Form setup
   const {
@@ -60,27 +58,9 @@ export default function ResetPassword() {
 
   const password = watch("password");
 
-  // Validate token on mount
-  useEffect(() => {
-    const validateToken = () => {
-      const token = searchParams?.get("token");
-      const type = searchParams?.get("type");
-
-      if (!token || type !== "recovery") {
-        setTokenError(
-          "This password reset link is invalid. Please request a new one."
-        );
-        setIsValidating(false);
-        return;
-      }
-
-      // Token exists in URL, Supabase will validate it
-      // If invalid, the API call will fail
-      setIsValidating(false);
-    };
-
-    validateToken();
-  }, [searchParams]);
+  // Note: Supabase automatically handles the token from the email link
+  // and exchanges it for a session stored in cookies.
+  // The backend will validate the session when the form is submitted.
 
   // Form submission
   const onSubmit = async (data: ResetPasswordInput) => {
@@ -141,23 +121,7 @@ export default function ResetPassword() {
     }
   };
 
-  // Show loading state while validating token
-  if (isValidating) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Validating reset link...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Show error if token is invalid
+  // Show error if token is invalid (set by API response)
   if (tokenError) {
     return (
       <div className="min-h-screen flex flex-col">
