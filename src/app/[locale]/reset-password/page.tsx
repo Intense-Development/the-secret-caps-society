@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ import {
 
 export default function ResetPassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -58,8 +59,35 @@ export default function ResetPassword() {
 
   const password = watch("password");
 
+  // Check for Supabase error in URL (from failed callback)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const errorMatch = hash.match(/error=([^&]+)/);
+      const errorDescMatch = hash.match(/error_description=([^&]+)/);
+      
+      if (errorMatch) {
+        const errorCode = errorMatch[1];
+        const errorDesc = errorDescMatch 
+          ? decodeURIComponent(errorDescMatch[1].replace(/\+/g, ' '))
+          : 'Invalid or expired reset link';
+
+        console.error('[SUPABASE_ERROR]', { errorCode, errorDesc });
+
+        if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
+          setTokenError(
+            "This password reset link has expired. Please request a new one. " +
+            "(Note: Reset links expire quickly for security - click within a few minutes of receiving the email)"
+          );
+        } else {
+          setTokenError(errorDesc);
+        }
+      }
+    }
+  }, [searchParams]);
+
   // Note: Token exchange is handled by /api/auth/callback
-  // This page just shows the form - the callback ensures a valid session exists
+  // This page shows the form after callback sets up the session
 
   // Form submission
   const onSubmit = async (data: ResetPasswordInput) => {
