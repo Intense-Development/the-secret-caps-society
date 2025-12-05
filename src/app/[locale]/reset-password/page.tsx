@@ -40,6 +40,7 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasValidSession, setHasValidSession] = useState(false);
 
   // Form setup
   const {
@@ -95,9 +96,45 @@ export default function ResetPassword() {
     };
   }, []);
 
-  // Form submission
+  // Form submission  
   const onSubmit = async (data: ResetPasswordInput) => {
     setIsSubmitting(true);
+
+    // If no session detected, try to update password using Supabase client directly
+    if (!hasValidSession) {
+      console.warn('[NO_SESSION_DETECTED]', 'Attempting password update via client');
+      
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.auth.updateUser({
+          password: data.password
+        });
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Reset link expired",
+            description: "Please request a new password reset link and try again.",
+          });
+          setTimeout(() => router.push("/forgot-password"), 2000);
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Success via client!
+        toast({
+          title: "Password updated successfully!",
+          description: "Redirecting to login...",
+        });
+        setTimeout(() => router.push("/login"), 2000);
+        setIsSubmitting(false);
+        return;
+        
+      } catch (error) {
+        console.error("Client password update failed:", error);
+        // Fall through to API call
+      }
+    }
 
     try {
       const response = await fetch("/api/auth/reset-password", {
@@ -109,6 +146,7 @@ export default function ResetPassword() {
           password: data.password,
           confirmPassword: data.confirmPassword,
         }),
+        credentials: 'include', // Ensure cookies are sent
       });
 
       const result = await response.json();
