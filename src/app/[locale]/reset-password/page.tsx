@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,8 +22,7 @@ import {
   Eye, 
   EyeOff, 
   Loader2, 
-  Key, 
-  AlertTriangle,
+  Key,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -35,13 +34,11 @@ import {
 
 export default function ResetPassword() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tokenError, setTokenError] = useState<string | null>(null);
 
   // Form setup
   const {
@@ -58,36 +55,6 @@ export default function ResetPassword() {
   });
 
   const password = watch("password");
-
-  // Check for Supabase error in URL (from failed callback)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      const errorMatch = hash.match(/error=([^&]+)/);
-      const errorDescMatch = hash.match(/error_description=([^&]+)/);
-      
-      if (errorMatch) {
-        const errorCode = errorMatch[1];
-        const errorDesc = errorDescMatch 
-          ? decodeURIComponent(errorDescMatch[1].replace(/\+/g, ' '))
-          : 'Invalid or expired reset link';
-
-        console.error('[SUPABASE_ERROR]', { errorCode, errorDesc });
-
-        if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
-          setTokenError(
-            "This password reset link has expired. Please request a new one. " +
-            "(Note: Reset links expire quickly for security - click within a few minutes of receiving the email)"
-          );
-        } else {
-          setTokenError(errorDesc);
-        }
-      }
-    }
-  }, [searchParams]);
-
-  // Note: Token exchange is handled by /api/auth/callback
-  // This page shows the form after callback sets up the session
 
   // Form submission
   const onSubmit = async (data: ResetPasswordInput) => {
@@ -108,20 +75,21 @@ export default function ResetPassword() {
       const result = await response.json();
 
       if (!response.ok) {
-        // Handle specific errors
-        if (response.status === 401) {
-          setTokenError(
-            result.message ||
-            "This password reset link has expired. Please request a new one."
-          );
-          return;
-        }
-
+        // Handle errors with toast notifications
         toast({
           variant: "destructive",
-          title: "Unable to reset password",
-          description: result.message || "Please try again.",
+          title: response.status === 401 
+            ? "Reset link expired" 
+            : "Unable to reset password",
+          description: result.message || "Please request a new reset link and try again.",
         });
+        
+        // If token expired, suggest going back to forgot-password
+        if (response.status === 401) {
+          setTimeout(() => {
+            router.push("/forgot-password");
+          }, 3000);
+        }
         return;
       }
 
@@ -147,45 +115,6 @@ export default function ResetPassword() {
       setIsSubmitting(false);
     }
   };
-
-  // Show error if token is invalid (set by API response)
-  if (tokenError) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow py-16 md:py-24">
-          <div className="container max-w-md mx-auto px-4">
-            <Card className="border-border/40 shadow-soft">
-              <CardHeader>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="rounded-full bg-destructive/10 p-3">
-                    <AlertTriangle className="h-6 w-6 text-destructive" />
-                  </div>
-                </div>
-                <CardTitle className="text-center">Invalid Reset Link</CardTitle>
-                <CardDescription className="text-center">
-                  {tokenError}
-                </CardDescription>
-              </CardHeader>
-              <CardFooter className="flex flex-col gap-3">
-                <Button asChild className="w-full">
-                  <Link href="/forgot-password">
-                    Request new reset link
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/login">
-                    Back to login
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   // Show reset password form
   return (
