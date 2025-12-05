@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,12 +36,14 @@ import {
 
 export default function ResetPassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(true);
 
   // Form setup
   const {
@@ -58,9 +61,54 @@ export default function ResetPassword() {
 
   const password = watch("password");
 
-  // Note: Supabase automatically handles the token from the email link
-  // and exchanges it for a session stored in cookies.
-  // The backend will validate the session when the form is submitted.
+  // Handle Supabase token exchange from email link
+  useEffect(() => {
+    const handleTokenExchange = async () => {
+      const tokenHash = searchParams?.get("token_hash");
+      const type = searchParams?.get("type");
+
+      // If no token params, might already be exchanged or invalid link
+      if (!tokenHash || type !== "recovery") {
+        // Check if there's already a valid session
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          setTokenError(
+            "This password reset link is invalid or has expired. Please request a new one."
+          );
+        }
+        setIsValidating(false);
+        return;
+      }
+
+      try {
+        // Exchange the token_hash for a session
+        const supabase = createClient();
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "recovery",
+        });
+
+        if (error) {
+          console.error("Token exchange error:", error);
+          setTokenError(
+            "This password reset link has expired or is invalid. Please request a new one."
+          );
+        }
+        // If successful, session is now stored in cookies
+      } catch (error) {
+        console.error("Token validation error:", error);
+        setTokenError(
+          "Unable to validate reset link. Please try requesting a new one."
+        );
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    handleTokenExchange();
+  }, [searchParams]);
 
   // Form submission
   const onSubmit = async (data: ResetPasswordInput) => {
@@ -121,7 +169,23 @@ export default function ResetPassword() {
     }
   };
 
-  // Show error if token is invalid (set by API response)
+  // Show loading state while validating token
+  if (isValidating) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Validating reset link...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show error if token is invalid
   if (tokenError) {
     return (
       <div className="min-h-screen flex flex-col">
