@@ -75,8 +75,21 @@ export async function POST(request: NextRequest) {
 
     // 3. Verify user is authenticated (token in session from email link)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    console.log('[RESET_PASSWORD_AUTH_CHECK]', {
+      hasUser: !!user,
+      hasSession: !!session,
+      userError: userError?.message,
+      userId: user?.id,
+      cookies: request.cookies.getAll().map(c => c.name)
+    })
 
     if (userError || !user) {
+      console.error('[RESET_PASSWORD_NO_USER]', {
+        error: userError?.message,
+        hasSession: !!session
+      })
       return buildErrorResponse(
         'Invalid or expired password reset link.',
         401
