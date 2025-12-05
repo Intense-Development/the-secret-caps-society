@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Link } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,6 +56,24 @@ export default function ResetPassword() {
   });
 
   const password = watch("password");
+
+  // Listen for Supabase auth state changes
+  // Supabase automatically processes the token from URL hash
+  useEffect(() => {
+    const supabase = createClient();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[AUTH_STATE_CHANGE]', { event, hasSession: !!session });
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log('[PASSWORD_RECOVERY_EVENT]', 'Session ready for password reset');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Form submission
   const onSubmit = async (data: ResetPasswordInput) => {
