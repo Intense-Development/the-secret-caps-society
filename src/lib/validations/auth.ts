@@ -136,6 +136,22 @@ export function calculatePasswordStrength(password: string): {
   return { strength, score, feedback }
 }
 
+// Forgot password schema
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+})
+
+// Reset password schema
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
+
 // Types
 export type BuyerRegistrationInput = z.infer<typeof buyerRegistrationSchema>
 export type SellerRegistrationInput = z.infer<typeof sellerRegistrationSchema>
@@ -144,4 +160,6 @@ export type SellerAccountInput = z.infer<typeof sellerAccountSchema>
 export type StoreInfoInput = z.infer<typeof storeInfoSchema>
 export type LocationDetailsInput = z.infer<typeof locationDetailsSchema>
 export type VerificationInput = z.infer<typeof verificationSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 

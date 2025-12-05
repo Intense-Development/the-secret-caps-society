@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { routing } from "@/i18n/routing-config";
 
-export default async function LoginRedirect() {
-  const locale = await getLocale();
-  redirect(`/${locale}/login`);
+export default function LoginRedirect() {
+  redirect(`/${routing.defaultLocale}/login`);
 }
 

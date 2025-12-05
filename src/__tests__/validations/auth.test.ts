@@ -9,6 +9,8 @@ import {
   emailSchema,
   calculatePasswordStrength,
   loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@/lib/validations/auth'
 
 describe('Auth Validations', () => {
@@ -319,6 +321,126 @@ describe('Auth Validations', () => {
       })
 
       expect(result.success).toBe(true)
+    })
+  })
+
+  describe('forgotPasswordSchema', () => {
+    it('should validate correct email', () => {
+      const result = forgotPasswordSchema.safeParse({
+        email: 'user@example.com',
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject invalid email', () => {
+      const result = forgotPasswordSchema.safeParse({
+        email: 'invalid-email',
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('should reject empty email', () => {
+      const result = forgotPasswordSchema.safeParse({
+        email: '',
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('should reject missing email', () => {
+      const result = forgotPasswordSchema.safeParse({})
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('resetPasswordSchema', () => {
+    const validResetData = {
+      password: 'NewSecure123!',
+      confirmPassword: 'NewSecure123!',
+    }
+
+    it('should validate matching strong passwords', () => {
+      const result = resetPasswordSchema.safeParse(validResetData)
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject mismatched passwords', () => {
+      const result = resetPasswordSchema.safeParse({
+        password: 'NewSecure123!',
+        confirmPassword: 'DifferentPass123!',
+      })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues[0].path).toContain('confirmPassword')
+        expect(result.error.issues[0].message).toContain("Passwords don't match")
+      }
+    })
+
+    it('should reject weak passwords', () => {
+      const result = resetPasswordSchema.safeParse({
+        password: 'weak',
+        confirmPassword: 'weak',
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('should reject empty confirmPassword', () => {
+      const result = resetPasswordSchema.safeParse({
+        password: 'NewSecure123!',
+        confirmPassword: '',
+      })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('confirm your password')
+      }
+    })
+
+    it('should reject missing confirmPassword', () => {
+      const result = resetPasswordSchema.safeParse({
+        password: 'NewSecure123!',
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('should enforce all password requirements', () => {
+      // No uppercase
+      expect(
+        resetPasswordSchema.safeParse({
+          password: 'newsecure123!',
+          confirmPassword: 'newsecure123!',
+        }).success
+      ).toBe(false)
+
+      // No lowercase
+      expect(
+        resetPasswordSchema.safeParse({
+          password: 'NEWSECURE123!',
+          confirmPassword: 'NEWSECURE123!',
+        }).success
+      ).toBe(false)
+
+      // No numbers
+      expect(
+        resetPasswordSchema.safeParse({
+          password: 'NewSecure!',
+          confirmPassword: 'NewSecure!',
+        }).success
+      ).toBe(false)
+
+      // No special characters
+      expect(
+        resetPasswordSchema.safeParse({
+          password: 'NewSecure123',
+          confirmPassword: 'NewSecure123',
+        }).success
+      ).toBe(false)
+
+      // Too short
+      expect(
+        resetPasswordSchema.safeParse({
+          password: 'New1!',
+          confirmPassword: 'New1!',
+        }).success
+      ).toBe(false)
     })
   })
 })
