@@ -50,17 +50,47 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    // Exchange code for session
-    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    let sessionData = null
+    let exchangeError = null
 
-    console.log('[CODE_EXCHANGE]', {
-      success: !exchangeError,
-      hasSession: !!data?.session,
-      hasUser: !!data?.user,
-      error: exchangeError?.message
-    })
+    // For password recovery, try verifyOtp first (doesn't require PKCE)
+    if (type === 'recovery') {
+      console.log('[AUTH_CALLBACK_RECOVERY_CODE]', 'Attempting verifyOtp for recovery')
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: code,
+        type: 'recovery'
+      })
 
-    if (!exchangeError && data?.session) {
+      if (!verifyError && verifyData?.session) {
+        sessionData = verifyData
+        console.log('[AUTH_CALLBACK_VERIFY_OTP_SUCCESS]', {
+          hasSession: !!sessionData.session,
+          userId: sessionData.user?.id
+        })
+      } else {
+        console.error('[AUTH_CALLBACK_VERIFY_OTP_ERROR]', verifyError)
+        exchangeError = verifyError
+      }
+    }
+
+    // If verifyOtp didn't work (or not recovery), try exchangeCodeForSession
+    if (!sessionData) {
+      console.log('[AUTH_CALLBACK_CODE_EXCHANGE]', 'Attempting exchangeCodeForSession')
+      const { data: exchangeData, error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (!exchangeErr && exchangeData?.session) {
+        sessionData = exchangeData
+        console.log('[AUTH_CALLBACK_EXCHANGE_SUCCESS]', {
+          hasSession: !!sessionData.session,
+          userId: sessionData.user?.id
+        })
+      } else {
+        console.error('[AUTH_CALLBACK_EXCHANGE_ERROR]', exchangeErr)
+        exchangeError = exchangeErr || exchangeError
+      }
+    }
+
+    if (sessionData?.session) {
       // For password recovery, always redirect to reset-password page
       // For other auth flows, use the 'next' parameter
       const redirectPath = type === 'recovery' 
@@ -77,17 +107,18 @@ export async function GET(request: NextRequest) {
 
       console.log('[AUTH_CALLBACK_SUCCESS]', {
         redirectTo: redirectPath,
-        userId: data.user?.id,
-        type: type || 'unknown'
+        userId: sessionData.user?.id,
+        type: type || 'unknown',
+        method: type === 'recovery' ? 'verifyOtp' : 'exchangeCodeForSession'
       })
 
       return response
     }
 
-    console.error('[AUTH_CALLBACK_EXCHANGE_ERROR]', exchangeError)
+    console.error('[AUTH_CALLBACK_ALL_METHODS_FAILED]', exchangeError)
     
     // Redirect with error
-    const errorUrl = new URL(next, request.url)
+    const errorUrl = new URL(type === 'recovery' ? `/${routing.defaultLocale}/reset-password` : next, request.url)
     errorUrl.hash = `error=exchange_failed&error_description=${exchangeError?.message || 'Failed to exchange code'}`
     return NextResponse.redirect(errorUrl)
   }

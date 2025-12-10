@@ -68,17 +68,17 @@ export default function ResetPassword() {
     const checkSession = async () => {
       setIsValidatingSession(true);
       
-      // Check if we have a code parameter
-      // For password reset, Supabase sends code that needs special handling
-      // The browser client will process it automatically when getSession() is called
+      // Check if we have a code parameter - redirect to callback to exchange it
       const code = searchParams?.get('code');
-      const type = searchParams?.get('type');
+      const typeParam = searchParams?.get('type');
       
-      if (code) {
-        console.log('[RESET_PASSWORD_CODE_DETECTED]', { code: code.substring(0, 10) + '...', type });
-        // Wait a bit for Supabase client to process the code
-        // The client automatically handles recovery codes when getSession() is called
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (code && typeof window !== 'undefined') {
+        console.log('[RESET_PASSWORD_CODE_DETECTED]', { code: code.substring(0, 10) + '...', type: typeParam });
+        // Redirect to callback route which will handle the code exchange
+        const currentPath = window.location.pathname;
+        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}&type=recovery&next=${encodeURIComponent(currentPath)}`;
+        window.location.href = callbackUrl;
+        return; // Don't proceed with rest of validation - redirecting
       }
       
       // Check if we have tokens in URL hash (implicit flow)
