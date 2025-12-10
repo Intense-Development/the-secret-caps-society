@@ -56,11 +56,11 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // 3. Generate redirect URL through callback to properly exchange code for session
-    // Password reset flow: email link -> callback (exchanges code) -> reset-password page
+    // 3. Generate redirect URL - Supabase will send tokens in URL hash
+    // Password reset flow: email link -> reset-password page (with tokens in hash)
+    // The reset-password page will process the tokens and establish a session
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
-    const resetPasswordPath = `/${routing.defaultLocale}/reset-password`
-    const redirectUrl = `${baseUrl}/api/auth/callback?next=${encodeURIComponent(resetPasswordPath)}`
+    const redirectUrl = `${baseUrl}/${routing.defaultLocale}/reset-password`
 
     // 4. Request password reset email from Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {

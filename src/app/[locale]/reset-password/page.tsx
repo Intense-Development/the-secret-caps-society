@@ -63,7 +63,72 @@ export default function ResetPassword() {
     
     // Check for session and process any recovery tokens
     const checkSession = async () => {
-      // Check current session first
+      // First, check if we have tokens in URL hash (Supabase might send them directly)
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+        const error = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+
+        console.log('[RESET_PASSWORD_URL_HASH_CHECK]', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          type,
+          error,
+          errorDescription,
+        });
+
+        // Handle errors from Supabase in hash
+        if (error) {
+          console.error('[RESET_PASSWORD_HASH_ERROR]', { error, errorDescription });
+          toast({
+            variant: "destructive",
+            title: "Reset link expired",
+            description: errorDescription || "Please request a new password reset link.",
+          });
+          setTimeout(() => router.push("/forgot-password"), 2000);
+          return;
+        }
+
+        // Process recovery tokens from hash
+        if (accessToken && refreshToken && type === 'recovery') {
+          console.log('[RESET_PASSWORD_PROCESSING_HASH_TOKENS]', 'Setting session from hash tokens');
+          try {
+            const { data: { session: newSession }, error: setSessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (newSession && !setSessionError) {
+              setHasValidSession(true);
+              console.log('[RESET_PASSWORD_SESSION_CREATED_FROM_HASH]', 'Session established');
+              // Clean up URL hash
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              return;
+            } else {
+              console.error('[RESET_PASSWORD_SET_SESSION_ERROR]', setSessionError);
+              toast({
+                variant: "destructive",
+                title: "Invalid reset link",
+                description: setSessionError?.message || "Please request a new password reset link.",
+              });
+              return;
+            }
+          } catch (error) {
+            console.error('[RESET_PASSWORD_SET_SESSION_EXCEPTION]', error);
+            toast({
+              variant: "destructive",
+              title: "Error processing reset link",
+              description: "Please request a new password reset link.",
+            });
+            return;
+          }
+        }
+      }
+
+      // Check for existing session (from callback or previous visit)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       console.log('[RESET_PASSWORD_SESSION_CHECK]', {
@@ -79,43 +144,28 @@ export default function ResetPassword() {
         return;
       }
 
-      // No session - check if we have a recovery token in the URL hash
-      if (typeof window !== 'undefined' && window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const type = hashParams.get('type');
-
-        if (accessToken && refreshToken && type === 'recovery') {
-          console.log('[RESET_PASSWORD_TOKEN_IN_HASH]', 'Processing recovery token from URL');
-          // Supabase client should automatically process this, but let's explicitly set session
-          const { data: { session: newSession }, error: setSessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (newSession && !setSessionError) {
-            setHasValidSession(true);
-            console.log('[RESET_PASSWORD_SESSION_CREATED]', 'Session established from token');
-            // Clean up URL hash
-            window.history.replaceState(null, '', window.location.pathname + window.location.search);
-          } else {
-            console.error('[RESET_PASSWORD_SESSION_ERROR]', setSessionError);
-          }
-        }
-      }
+      // No session and no tokens - might still be loading or invalid link
+      console.warn('[RESET_PASSWORD_NO_SESSION_OR_TOKENS]', 'No session or tokens found');
     };
 
     checkSession();
 
-    // Listen for auth state changes
+    // Listen for auth state changes (handles async token processing)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AUTH_STATE_CHANGE]', { event, hasSession: !!session });
       
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (session) {
           setHasValidSession(true);
-          console.log('[RESET_PASSWORD_SESSION_ESTABLISHED]', 'Ready for password reset');
+          console.log('[RESET_PASSWORD_SESSION_ESTABLISHED_VIA_EVENT]', 'Ready for password reset');
+        }
+      }
+      
+      if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        // Session lost - might happen if token expired
+        if (!session) {
+          setHasValidSession(false);
+          console.warn('[RESET_PASSWORD_SESSION_LOST]', 'Session no longer valid');
         }
       }
     });
@@ -123,7 +173,7 @@ export default function ResetPassword() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router, toast]);
 
   // Form submission  
   const onSubmit = async (data: ResetPasswordInput) => {
