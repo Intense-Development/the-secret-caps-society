@@ -68,54 +68,61 @@ export default function ResetPassword() {
     const checkSession = async () => {
       setIsValidatingSession(true);
       
-      // Check if we have a code parameter - need to verify with email
-      // Password reset codes require the user's email to verify
-      // However, Supabase might send tokens in hash instead of codes
+      // Check if we have a code parameter - verify it via API route
       const code = searchParams?.get('code');
       const typeParam = searchParams?.get('type');
       
       if (code) {
         console.log('[RESET_PASSWORD_CODE_DETECTED]', { code: code.substring(0, 10) + '...', type: typeParam });
         
-        // Password reset codes from Supabase need to be verified with email
-        // But we don't have the email here. Supabase should send tokens in hash instead.
-        // For now, try to verify with the code alone - might work for recovery type
         try {
-          // Try verifyOtp - this might work for password recovery without email
-          const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: code,
-            type: 'recovery'
+          // Verify the code via API route (server-side can use verifyOtp without PKCE issues)
+          const verifyResponse = await fetch('/api/auth/verify-reset-code', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code }),
+            credentials: 'include',
           });
 
-          if (verifyError) {
-            console.error('[RESET_PASSWORD_VERIFY_OTP_ERROR]', verifyError);
-          }
+          const verifyResult = await verifyResponse.json();
 
-          if (verifyData?.session) {
-            setHasValidSession(true);
+          console.log('[RESET_PASSWORD_VERIFY_API_RESPONSE]', {
+            success: verifyResult.success,
+            status: verifyResponse.status,
+          });
+
+          if (verifyResult.success && verifyResponse.ok) {
+            // Code verified, session should be established via cookies
+            // Wait a moment for cookies to be set
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Check if session now exists
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            if (newSession) {
+              setHasValidSession(true);
+              setIsValidatingSession(false);
+              console.log('[RESET_PASSWORD_SESSION_FROM_VERIFY_API]', 'Session established');
+              // Clean up URL
+              window.history.replaceState(null, '', window.location.pathname);
+              return;
+            }
+          } else {
+            console.error('[RESET_PASSWORD_VERIFY_API_FAILED]', verifyResult.message);
             setIsValidatingSession(false);
-            console.log('[RESET_PASSWORD_SESSION_FROM_VERIFY]', 'Session established via verifyOtp');
-            window.history.replaceState(null, '', window.location.pathname);
+            toast({
+              variant: "destructive",
+              title: "Invalid reset link",
+              description: verifyResult.message || "Please request a new password reset link.",
+            });
+            setTimeout(() => router.push("/forgot-password"), 2000);
             return;
           }
         } catch (error) {
-          console.error('[RESET_PASSWORD_VERIFY_EXCEPTION]', error);
-        }
-        
-        // If verifyOtp didn't work, the code might need to be handled differently
-        // Supabase password reset might require email + code, or use tokens in hash
-        // Let's check if there's a session anyway (might have been set)
-        const { data: { session: codeSession } } = await supabase.auth.getSession();
-        if (codeSession) {
-          setHasValidSession(true);
+          console.error('[RESET_PASSWORD_VERIFY_API_EXCEPTION]', error);
           setIsValidatingSession(false);
-          console.log('[RESET_PASSWORD_SESSION_AFTER_CODE]', 'Session found - code may have been auto-processed');
-          window.history.replaceState(null, '', window.location.pathname);
-          return;
         }
-        
-        // Code present but no session - might be invalid or need different handling
-        console.warn('[RESET_PASSWORD_CODE_NO_SESSION]', 'Code found but could not establish session');
       }
       
       // Check if we have tokens in URL hash (implicit flow)
