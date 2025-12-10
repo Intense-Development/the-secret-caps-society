@@ -68,15 +68,17 @@ export default function ResetPassword() {
     const checkSession = async () => {
       setIsValidatingSession(true);
       
-      // First, check if we have a code parameter (PKCE flow) - redirect to callback
+      // Check if we have a code parameter
+      // For password reset, Supabase sends code that needs special handling
+      // The browser client will process it automatically when getSession() is called
       const code = searchParams?.get('code');
-      if (code && typeof window !== 'undefined') {
-        console.log('[RESET_PASSWORD_CODE_DETECTED]', 'Redirecting to callback to exchange code');
-        // Redirect to callback route which will exchange code for session
-        const currentPath = window.location.pathname;
-        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}&next=${encodeURIComponent(currentPath)}`;
-        window.location.href = callbackUrl;
-        return; // Don't proceed with rest of validation
+      const type = searchParams?.get('type');
+      
+      if (code) {
+        console.log('[RESET_PASSWORD_CODE_DETECTED]', { code: code.substring(0, 10) + '...', type });
+        // Wait a bit for Supabase client to process the code
+        // The client automatically handles recovery codes when getSession() is called
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
       // Check if we have tokens in URL hash (implicit flow)
