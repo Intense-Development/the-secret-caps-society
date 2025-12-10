@@ -24,7 +24,6 @@ test.describe('Reset Password Flow', () => {
 
   test('should toggle password visibility', async ({ page }) => {
     const passwordInput = page.getByLabel(/^password$/i);
-    const confirmPasswordInput = page.getByLabel(/confirm password/i);
     
     await passwordInput.fill('TestPassword123!');
     
@@ -100,6 +99,7 @@ test.describe('Reset Password Flow', () => {
     // Mock Supabase auth check to simulate valid session
     await page.addInitScript(() => {
       // Mock Supabase client for session check
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__MOCK_SUPABASE_SESSION__ = true;
     });
 
