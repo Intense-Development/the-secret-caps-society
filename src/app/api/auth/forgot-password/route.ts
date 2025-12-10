@@ -56,10 +56,11 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // 3. Generate redirect URL (direct to page, not through callback)
-    // Password reset uses implicit flow, not PKCE
+    // 3. Generate redirect URL through callback to properly exchange code for session
+    // Password reset flow: email link -> callback (exchanges code) -> reset-password page
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
-    const redirectUrl = `${baseUrl}/${routing.defaultLocale}/reset-password`
+    const resetPasswordPath = `/${routing.defaultLocale}/reset-password`
+    const redirectUrl = `${baseUrl}/api/auth/callback?next=${encodeURIComponent(resetPasswordPath)}`
 
     // 4. Request password reset email from Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
