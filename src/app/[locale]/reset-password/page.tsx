@@ -68,6 +68,17 @@ export default function ResetPassword() {
     const checkSession = async () => {
       setIsValidatingSession(true);
       
+      // Log the current URL to debug
+      const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+      const currentHash = typeof window !== 'undefined' ? window.location.hash : '';
+      const currentSearch = typeof window !== 'undefined' ? window.location.search : '';
+      console.log('[RESET_PASSWORD_URL_DEBUG]', {
+        href: currentUrl,
+        hash: currentHash,
+        search: currentSearch,
+        pathname: typeof window !== 'undefined' ? window.location.pathname : '',
+      });
+      
       // First, check if we have tokens in URL hash (implicit flow)
       if (typeof window !== 'undefined' && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -143,15 +154,18 @@ export default function ResetPassword() {
       const code = searchParams?.get('code');
       const typeParam = searchParams?.get('type');
       
-      if (code && typeParam === 'recovery') {
-        console.log('[RESET_PASSWORD_CODE_DETECTED]', 'Redirecting to callback for server-side processing');
+      if (code) {
+        console.log('[RESET_PASSWORD_CODE_DETECTED]', { 
+          code: code.substring(0, 20) + '...', 
+          type: typeParam,
+          redirectingToCallback: true 
+        });
         // Redirect to callback route which will handle the code server-side
-        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}&type=recovery&next=${encodeURIComponent(window.location.pathname)}`;
+        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}${typeParam ? `&type=${encodeURIComponent(typeParam)}` : ''}&next=${encodeURIComponent(window.location.pathname)}`;
+        console.log('[RESET_PASSWORD_REDIRECTING]', { callbackUrl });
         window.location.href = callbackUrl;
         return; // Exit early, redirect will happen
       }
-      
-      // If we have a code but it's not recovery type, or no code, continue to session check
 
       // Check for existing session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();

@@ -53,17 +53,20 @@ export async function GET(request: NextRequest) {
     let sessionData = null
     let exchangeError = null
 
-    // Password recovery codes from Supabase need special handling
-    // They are NOT PKCE codes, so exchangeCodeForSession fails with PKCE error
-    // The correct approach: use verifyOtp with the code as token_hash, but we need email
-    // OR: The code might actually work with exchangeCodeForSession on server-side if configured correctly
-    // Let's try both approaches
+    // Password recovery codes from Supabase are tricky - they're not PKCE codes
+    // Server-side exchangeCodeForSession SHOULD work for recovery codes
+    // If it doesn't, we'll redirect with the code and let the client handle it differently
     
-    console.log('[AUTH_CALLBACK_PROCESSING_CODE]', { type, hasCode: !!code, codePrefix: code?.substring(0, 10) })
+    console.log('[AUTH_CALLBACK_PROCESSING_CODE]', { 
+      type, 
+      hasCode: !!code, 
+      codePrefix: code?.substring(0, 15) + '...',
+      allParams: Object.fromEntries(requestUrl.searchParams.entries())
+    })
     
     if (code) {
-      // First, try exchangeCodeForSession server-side (might work without PKCE requirements)
-      console.log('[AUTH_CALLBACK_ATTEMPTING_EXCHANGE]', 'Server-side exchangeCodeForSession')
+      // Try exchangeCodeForSession server-side - this should work for recovery codes
+      console.log('[AUTH_CALLBACK_ATTEMPTING_EXCHANGE]', 'Server-side exchangeCodeForSession for recovery code')
       const { data: exchangeData, error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code)
       
       if (!exchangeErr && exchangeData?.session) {
@@ -74,17 +77,25 @@ export async function GET(request: NextRequest) {
           type: type || 'unknown'
         })
       } else {
-        console.warn('[AUTH_CALLBACK_EXCHANGE_FAILED]', {
+        console.error('[AUTH_CALLBACK_EXCHANGE_FAILED]', {
           error: exchangeErr?.message,
           status: exchangeErr?.status,
-          willTryAlternative: true
+          code: exchangeErr?.code,
+          fullError: exchangeErr
         })
         exchangeError = exchangeErr
         
-        // If exchangeCodeForSession fails, the code might be a recovery token that needs different handling
-        // However, verifyOtp requires email which we don't have here
-        // The solution: Supabase might send the code in a format that needs to be used differently
-        // Let's check if there's an alternative approach
+        // If exchangeCodeForSession fails, Supabase might have sent tokens in hash
+        // OR the redirect URL configuration is wrong
+        // Let's redirect back to reset-password with the code - client will handle hash if present
+        if (type === 'recovery') {
+          console.log('[AUTH_CALLBACK_REDIRECTING_WITH_CODE]', 'Will let client handle code or hash')
+          const redirectPath = `/${routing.defaultLocale}/reset-password`
+          const redirectUrl = new URL(redirectPath, request.url)
+          redirectUrl.searchParams.set('code', code)
+          if (type) redirectUrl.searchParams.set('type', type)
+          return NextResponse.redirect(redirectUrl)
+        }
       }
     }
 
