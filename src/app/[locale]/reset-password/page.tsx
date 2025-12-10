@@ -40,6 +40,7 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasValidSession, setHasValidSession] = useState(false);
+  const [isValidatingSession, setIsValidatingSession] = useState(true);
 
   // Form setup
   const {
@@ -63,6 +64,7 @@ export default function ResetPassword() {
     
     // Check for session and process any recovery tokens
     const checkSession = async () => {
+      setIsValidatingSession(true);
       // First, check if we have tokens in URL hash (Supabase might send them directly)
       if (typeof window !== 'undefined' && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -103,11 +105,13 @@ export default function ResetPassword() {
 
             if (newSession && !setSessionError) {
               setHasValidSession(true);
+              setIsValidatingSession(false);
               console.log('[RESET_PASSWORD_SESSION_CREATED_FROM_HASH]', 'Session established');
               // Clean up URL hash
               window.history.replaceState(null, '', window.location.pathname + window.location.search);
               return;
             } else {
+              setIsValidatingSession(false);
               console.error('[RESET_PASSWORD_SET_SESSION_ERROR]', setSessionError);
               toast({
                 variant: "destructive",
@@ -117,6 +121,7 @@ export default function ResetPassword() {
               return;
             }
           } catch (error) {
+            setIsValidatingSession(false);
             console.error('[RESET_PASSWORD_SET_SESSION_EXCEPTION]', error);
             toast({
               variant: "destructive",
@@ -140,11 +145,13 @@ export default function ResetPassword() {
       if (session) {
         // Session exists, we can proceed
         setHasValidSession(true);
+        setIsValidatingSession(false);
         console.log('[RESET_PASSWORD_VALID_SESSION]', 'Ready for password reset');
         return;
       }
 
       // No session and no tokens - might still be loading or invalid link
+      setIsValidatingSession(false);
       console.warn('[RESET_PASSWORD_NO_SESSION_OR_TOKENS]', 'No session or tokens found');
     };
 
@@ -157,6 +164,7 @@ export default function ResetPassword() {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (session) {
           setHasValidSession(true);
+          setIsValidatingSession(false);
           console.log('[RESET_PASSWORD_SESSION_ESTABLISHED_VIA_EVENT]', 'Ready for password reset');
         }
       }
@@ -177,43 +185,30 @@ export default function ResetPassword() {
 
   // Form submission  
   const onSubmit = async (data: ResetPasswordInput) => {
-    setIsSubmitting(true);
-
-    // If no session detected, try to update password using Supabase client directly
-    if (!hasValidSession) {
-      console.warn('[NO_SESSION_DETECTED]', 'Attempting password update via client');
-      
-      try {
-        const supabase = createClient();
-        const { error } = await supabase.auth.updateUser({
-          password: data.password
-        });
-
-        if (error) {
-          toast({
-            variant: "destructive",
-            title: "Reset link expired",
-            description: "Please request a new password reset link and try again.",
-          });
-          setTimeout(() => router.push("/forgot-password"), 2000);
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Success via client!
-        toast({
-          title: "Password updated successfully!",
-          description: "Redirecting to login...",
-        });
-        setTimeout(() => router.push("/login"), 2000);
-        setIsSubmitting(false);
-        return;
-        
-      } catch (error) {
-        console.error("Client password update failed:", error);
-        // Fall through to API call
-      }
+    // Don't allow submission if session is still being validated
+    if (isValidatingSession) {
+      console.warn('[FORM_SUBMISSION_BLOCKED]', 'Session validation in progress');
+      toast({
+        variant: "default",
+        title: "Please wait",
+        description: "Validating reset link...",
+      });
+      return;
     }
+
+    // Don't allow submission if no valid session
+    if (!hasValidSession) {
+      console.error('[NO_SESSION_DETECTED]', 'Cannot reset password without valid session');
+      toast({
+        variant: "destructive",
+        title: "Reset link expired",
+        description: "Please request a new password reset link and try again.",
+      });
+      setTimeout(() => router.push("/forgot-password"), 2000);
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/auth/reset-password", {
@@ -374,9 +369,14 @@ export default function ResetPassword() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isValidatingSession || !hasValidSession}
                   >
-                    {isSubmitting ? (
+                    {isValidatingSession ? (
+                      <span className="inline-flex items-center">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Validating reset link...
+                      </span>
+                    ) : isSubmitting ? (
                       <span className="inline-flex items-center">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Resetting password...
