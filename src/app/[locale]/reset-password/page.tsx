@@ -246,7 +246,7 @@ export default function ResetPassword() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, searchParams, toast]);
+  }, [router, toast]);
 
   // Form submission  
   const onSubmit = async (data: ResetPasswordInput) => {
