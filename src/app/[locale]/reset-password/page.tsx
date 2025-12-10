@@ -138,69 +138,20 @@ export default function ResetPassword() {
         }
       }
 
-      // Check if we have a code parameter - exchange it for session on client side
+      // Check if we have a code parameter - redirect to callback route for server-side processing
+      // Client-side can't handle recovery codes (they require server-side exchangeCodeForSession)
       const code = searchParams?.get('code');
       const typeParam = searchParams?.get('type');
       
-      if (code) {
-        console.log('[RESET_PASSWORD_CODE_DETECTED]', { type: typeParam });
-        
-        try {
-          // Use client-side exchangeCodeForSession - this should work for password reset codes
-          // The browser client can handle this without PKCE issues in some cases
-          console.log('[RESET_PASSWORD_EXCHANGING_CODE]');
-          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (exchangeError) {
-            console.error('[RESET_PASSWORD_EXCHANGE_ERROR]', exchangeError);
-            
-            // If exchangeCodeForSession fails (PKCE issue), try verifyOtp as fallback
-            console.log('[RESET_PASSWORD_TRYING_VERIFY_OTP]');
-            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-              token: code,
-              type: 'recovery',
-            });
-
-            if (verifyError || !verifyData?.session) {
-              console.error('[RESET_PASSWORD_VERIFY_OTP_ERROR]', verifyError);
-              setIsValidatingSession(false);
-              toast({
-                variant: "destructive",
-                title: "Invalid reset link",
-                description: exchangeError?.message || verifyError?.message || "Please request a new password reset link.",
-              });
-              setTimeout(() => router.push("/forgot-password"), 2000);
-              return;
-            }
-
-            // verifyOtp succeeded
-            if (verifyData.session) {
-              setHasValidSession(true);
-              setIsValidatingSession(false);
-              console.log('[RESET_PASSWORD_SESSION_FROM_VERIFY_OTP]');
-              window.history.replaceState(null, '', window.location.pathname);
-              return;
-            }
-          } else if (exchangeData?.session) {
-            // exchangeCodeForSession succeeded
-            setHasValidSession(true);
-            setIsValidatingSession(false);
-            console.log('[RESET_PASSWORD_SESSION_FROM_EXCHANGE]');
-            window.history.replaceState(null, '', window.location.pathname);
-            return;
-          }
-        } catch (error) {
-          console.error('[RESET_PASSWORD_CODE_PROCESSING_EXCEPTION]', error);
-          setIsValidatingSession(false);
-          toast({
-            variant: "destructive",
-            title: "Error processing reset link",
-            description: "Please request a new password reset link.",
-          });
-          setTimeout(() => router.push("/forgot-password"), 2000);
-          return;
-        }
+      if (code && typeParam === 'recovery') {
+        console.log('[RESET_PASSWORD_CODE_DETECTED]', 'Redirecting to callback for server-side processing');
+        // Redirect to callback route which will handle the code server-side
+        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}&type=recovery&next=${encodeURIComponent(window.location.pathname)}`;
+        window.location.href = callbackUrl;
+        return; // Exit early, redirect will happen
       }
+      
+      // If we have a code but it's not recovery type, or no code, continue to session check
 
       // Check for existing session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();

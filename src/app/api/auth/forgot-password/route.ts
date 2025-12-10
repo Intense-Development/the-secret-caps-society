@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
     )
 
     // 3. Generate redirect URL - must match Supabase redirect URLs exactly
-    // Direct redirect to reset-password page - client will handle code exchange
+    // IMPORTANT: Use direct redirect to reset-password page with hash tokens
+    // Supabase will send tokens in URL hash (#access_token=...) for password reset
+    // This avoids PKCE code exchange issues
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
     const redirectUrl = `${baseUrl}/${routing.defaultLocale}/reset-password`
 

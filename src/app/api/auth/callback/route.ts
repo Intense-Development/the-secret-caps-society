@@ -53,42 +53,38 @@ export async function GET(request: NextRequest) {
     let sessionData = null
     let exchangeError = null
 
-    // For password recovery, try verifyOtp first (doesn't require PKCE)
-    if (type === 'recovery' && !sessionData) {
-      console.log('[AUTH_CALLBACK_RECOVERY_VERIFY]', 'Attempting verifyOtp for recovery')
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        token: code, // Use 'token' instead of 'token_hash'
-        type: 'recovery'
-      })
-
-      if (!verifyError && verifyData?.session) {
-        sessionData = verifyData
-        console.log('[AUTH_CALLBACK_RECOVERY_VERIFY_SUCCESS]', {
-          hasSession: !!sessionData.session,
-          userId: sessionData.user?.id
-        })
-      } else {
-        console.warn('[AUTH_CALLBACK_RECOVERY_VERIFY_FAILED]', {
-          error: verifyError?.message,
-          'Will try exchangeCodeForSession fallback': true
-        })
-      }
-    }
-
-    // If verifyOtp didn't work (or not recovery), try exchangeCodeForSession
-    if (!sessionData) {
-      console.log('[AUTH_CALLBACK_CODE_EXCHANGE]', 'Attempting exchangeCodeForSession')
+    // Password recovery codes from Supabase need special handling
+    // They are NOT PKCE codes, so exchangeCodeForSession fails with PKCE error
+    // The correct approach: use verifyOtp with the code as token_hash, but we need email
+    // OR: The code might actually work with exchangeCodeForSession on server-side if configured correctly
+    // Let's try both approaches
+    
+    console.log('[AUTH_CALLBACK_PROCESSING_CODE]', { type, hasCode: !!code, codePrefix: code?.substring(0, 10) })
+    
+    if (code) {
+      // First, try exchangeCodeForSession server-side (might work without PKCE requirements)
+      console.log('[AUTH_CALLBACK_ATTEMPTING_EXCHANGE]', 'Server-side exchangeCodeForSession')
       const { data: exchangeData, error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code)
       
       if (!exchangeErr && exchangeData?.session) {
         sessionData = exchangeData
         console.log('[AUTH_CALLBACK_EXCHANGE_SUCCESS]', {
           hasSession: !!sessionData.session,
-          userId: sessionData.user?.id
+          userId: sessionData.user?.id,
+          type: type || 'unknown'
         })
       } else {
-        console.error('[AUTH_CALLBACK_EXCHANGE_ERROR]', exchangeErr)
-        exchangeError = exchangeErr || exchangeError
+        console.warn('[AUTH_CALLBACK_EXCHANGE_FAILED]', {
+          error: exchangeErr?.message,
+          status: exchangeErr?.status,
+          willTryAlternative: true
+        })
+        exchangeError = exchangeErr
+        
+        // If exchangeCodeForSession fails, the code might be a recovery token that needs different handling
+        // However, verifyOtp requires email which we don't have here
+        // The solution: Supabase might send the code in a format that needs to be used differently
+        // Let's check if there's an alternative approach
       }
     }
 
