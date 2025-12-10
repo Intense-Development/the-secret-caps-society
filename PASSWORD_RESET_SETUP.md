@@ -6,18 +6,15 @@ Supabase password reset can send codes in different formats:
 2. **Query code** (`?code=xxx&type=recovery`) - PKCE flow (but password reset doesn't use PKCE)
 
 ## The Solution
-The current implementation handles BOTH flows on the client side:
+**We configure Supabase to use IMPLICIT FLOW (hash tokens) for password reset.**
 
-### Flow 1: Hash Tokens (Implicit Flow)
-1. User clicks email link → lands on `/en/reset-password#access_token=...`
-2. Client detects hash tokens → calls `supabase.auth.setSession({ access_token, refresh_token })`
-3. Session established → form enables
-
-### Flow 2: Query Code (PKCE-like, but not really PKCE)
-1. User clicks email link → lands on `/en/reset-password?code=xxx&type=recovery`
-2. Client detects code → tries `exchangeCodeForSession(code)` first
-3. If that fails (PKCE error), tries `verifyOtp({ token: code, type: 'recovery' })`
+This avoids PKCE code exchange issues. The implementation:
+1. Redirects directly to `/en/reset-password` (no callback route)
+2. Supabase sends tokens in URL hash: `#access_token=...&refresh_token=...&type=recovery`
+3. Client detects hash tokens → calls `supabase.auth.setSession({ access_token, refresh_token })`
 4. Session established → form enables
+
+**IMPORTANT:** The redirect URL in `forgot-password` route points directly to the reset-password page, which tells Supabase to use implicit flow (hash tokens) instead of PKCE flow (query codes).
 
 ## Supabase Configuration REQUIRED
 
