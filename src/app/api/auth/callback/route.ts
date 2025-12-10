@@ -53,20 +53,26 @@ export async function GET(request: NextRequest) {
     let sessionData = null
     let exchangeError = null
 
-    // For password recovery, we can't use PKCE exchange (requires code verifier)
-    // Password reset codes need different handling - redirect to reset-password page
-    // The client-side page will handle the code using verifyOtp (if email available)
-    // or process tokens if Supabase sends them in hash instead
-    if (type === 'recovery') {
-      console.log('[AUTH_CALLBACK_RECOVERY_SKIP]', 'Skipping PKCE exchange for recovery, redirecting to reset-password')
-      // Redirect to reset-password page with code - client will handle verification
-      const redirectPath = `/${routing.defaultLocale}/reset-password`
-      const redirectUrl = new URL(redirectPath, request.url)
-      // Keep the code in query params so client can process it
-      if (code) {
-        redirectUrl.searchParams.set('code', code)
+    // For password recovery, try verifyOtp first (doesn't require PKCE)
+    if (type === 'recovery' && !sessionData) {
+      console.log('[AUTH_CALLBACK_RECOVERY_VERIFY]', 'Attempting verifyOtp for recovery')
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        token: code, // Use 'token' instead of 'token_hash'
+        type: 'recovery'
+      })
+
+      if (!verifyError && verifyData?.session) {
+        sessionData = verifyData
+        console.log('[AUTH_CALLBACK_RECOVERY_VERIFY_SUCCESS]', {
+          hasSession: !!sessionData.session,
+          userId: sessionData.user?.id
+        })
+      } else {
+        console.warn('[AUTH_CALLBACK_RECOVERY_VERIFY_FAILED]', {
+          error: verifyError?.message,
+          'Will try exchangeCodeForSession fallback': true
+        })
       }
-      return NextResponse.redirect(redirectUrl)
     }
 
     // If verifyOtp didn't work (or not recovery), try exchangeCodeForSession

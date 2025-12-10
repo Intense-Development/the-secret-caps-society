@@ -56,12 +56,11 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // 3. Generate redirect URL - redirect directly to reset-password page
-    // Password reset doesn't use PKCE, so we can't exchange code in callback
-    // Instead, redirect directly to reset-password page and let client handle the code/token
-    // IMPORTANT: The redirectTo URL must match exactly what's in Supabase redirect URLs list
+    // 3. Generate redirect URL - must match Supabase redirect URLs exactly
+    // Password reset codes can come as query params (PKCE) or hash tokens (implicit)
+    // Redirect through callback route to handle code exchange, then to reset-password
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
-    const redirectUrl = `${baseUrl}/${routing.defaultLocale}/reset-password`
+    const redirectUrl = `${baseUrl}/api/auth/callback?next=${encodeURIComponent(`/${routing.defaultLocale}/reset-password`)}`
 
     // 4. Request password reset email from Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
