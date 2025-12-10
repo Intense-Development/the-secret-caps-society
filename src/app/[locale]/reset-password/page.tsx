@@ -72,11 +72,20 @@ export default function ResetPassword() {
       const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
       const currentHash = typeof window !== 'undefined' ? window.location.hash : '';
       const currentSearch = typeof window !== 'undefined' ? window.location.search : '';
+      const allSearchParams = typeof window !== 'undefined' && searchParams 
+        ? Object.fromEntries(searchParams.entries()) 
+        : {};
+      
       console.log('[RESET_PASSWORD_URL_DEBUG]', {
         href: currentUrl,
         hash: currentHash,
         search: currentSearch,
         pathname: typeof window !== 'undefined' ? window.location.pathname : '',
+        searchParams: allSearchParams,
+        hasCode: !!searchParams?.get('code'),
+        hasToken: !!searchParams?.get('token'),
+        codeValue: searchParams?.get('code')?.substring(0, 20),
+        tokenValue: searchParams?.get('token')?.substring(0, 20),
       });
       
       // First, check if we have tokens in URL hash (implicit flow)
@@ -149,20 +158,34 @@ export default function ResetPassword() {
         }
       }
 
-      // Check if we have a code parameter - redirect to callback route for server-side processing
-      // Client-side can't handle recovery codes (they require server-side exchangeCodeForSession)
+      // Check if we have a code or token parameter
+      // Supabase sends either:
+      // 1. A 'code' parameter (PKCE flow) - needs exchangeCodeForSession
+      // 2. A 'token' parameter - needs verifyOtp
+      // Both need to be handled server-side
       const code = searchParams?.get('code');
+      const token = searchParams?.get('token');
       const typeParam = searchParams?.get('type');
       
-      if (code) {
-        console.log('[RESET_PASSWORD_CODE_DETECTED]', { 
-          code: code.substring(0, 20) + '...', 
+      if (code || token) {
+        console.log('[RESET_PASSWORD_CODE_OR_TOKEN_DETECTED]', { 
+          hasCode: !!code,
+          hasToken: !!token,
+          codePrefix: code?.substring(0, 20),
+          tokenPrefix: token?.substring(0, 20),
           type: typeParam,
           redirectingToCallback: true 
         });
-        // Redirect to callback route which will handle the code server-side
-        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}${typeParam ? `&type=${encodeURIComponent(typeParam)}` : ''}&next=${encodeURIComponent(window.location.pathname)}`;
-        console.log('[RESET_PASSWORD_REDIRECTING]', { callbackUrl });
+        
+        // Redirect to callback route which will handle it server-side
+        const params = new URLSearchParams();
+        if (code) params.set('code', code);
+        if (token) params.set('token', token);
+        if (typeParam) params.set('type', typeParam);
+        params.set('next', window.location.pathname);
+        
+        const callbackUrl = `/api/auth/callback?${params.toString()}`;
+        console.log('[RESET_PASSWORD_REDIRECTING_TO_CALLBACK]', { callbackUrl });
         window.location.href = callbackUrl;
         return; // Exit early, redirect will happen
       }

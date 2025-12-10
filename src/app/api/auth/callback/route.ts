@@ -5,6 +5,7 @@ import { routing } from '@/i18n/routing-config'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const token = requestUrl.searchParams.get('token') // Recovery token from email link
   const next = requestUrl.searchParams.get('next') || `/${routing.defaultLocale}/reset-password`
   const error = requestUrl.searchParams.get('error')
   const errorDescription = requestUrl.searchParams.get('error_description')
@@ -12,9 +13,11 @@ export async function GET(request: NextRequest) {
 
   console.log('[AUTH_CALLBACK]', {
     hasCode: !!code,
+    hasToken: !!token,
     next,
     error,
     errorDescription,
+    type,
     allParams: Object.fromEntries(requestUrl.searchParams.entries())
   })
 
@@ -53,20 +56,47 @@ export async function GET(request: NextRequest) {
     let sessionData = null
     let exchangeError = null
 
-    // Password recovery codes from Supabase are tricky - they're not PKCE codes
-    // Server-side exchangeCodeForSession SHOULD work for recovery codes
-    // If it doesn't, we'll redirect with the code and let the client handle it differently
+    // Password recovery can come as either:
+    // 1. A 'code' parameter (PKCE flow) - needs exchangeCodeForSession
+    // 2. A 'token' parameter (recovery token from email) - needs verifyOtp
+    // Try both approaches
     
-    console.log('[AUTH_CALLBACK_PROCESSING_CODE]', { 
+    console.log('[AUTH_CALLBACK_PROCESSING]', { 
       type, 
-      hasCode: !!code, 
-      codePrefix: code?.substring(0, 15) + '...',
+      hasCode: !!code,
+      hasToken: !!token,
+      codePrefix: code?.substring(0, 20),
+      tokenPrefix: token?.substring(0, 20),
       allParams: Object.fromEntries(requestUrl.searchParams.entries())
     })
     
-    if (code) {
-      // Try exchangeCodeForSession server-side - this should work for recovery codes
-      console.log('[AUTH_CALLBACK_ATTEMPTING_EXCHANGE]', 'Server-side exchangeCodeForSession for recovery code')
+    // First, try verifyOtp if we have a token (this is what Supabase sends in email links)
+    if (token && type === 'recovery') {
+      console.log('[AUTH_CALLBACK_VERIFYING_TOKEN]', 'Using verifyOtp for recovery token')
+      const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'recovery'
+      })
+      
+      if (!verifyErr && verifyData?.session) {
+        sessionData = verifyData
+        console.log('[AUTH_CALLBACK_VERIFY_SUCCESS]', {
+          hasSession: !!sessionData.session,
+          userId: sessionData.user?.id
+        })
+      } else {
+        console.warn('[AUTH_CALLBACK_VERIFY_FAILED]', {
+          error: verifyErr?.message,
+          status: verifyErr?.status,
+          willTryExchange: !!code
+        })
+        // Will try exchangeCodeForSession as fallback if code exists
+      }
+    }
+    
+    // If verifyOtp didn't work or we have a code, try exchangeCodeForSession
+    if (!sessionData && code) {
+      console.log('[AUTH_CALLBACK_ATTEMPTING_EXCHANGE]', 'Server-side exchangeCodeForSession')
       const { data: exchangeData, error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code)
       
       if (!exchangeErr && exchangeData?.session) {
@@ -80,22 +110,9 @@ export async function GET(request: NextRequest) {
         console.error('[AUTH_CALLBACK_EXCHANGE_FAILED]', {
           error: exchangeErr?.message,
           status: exchangeErr?.status,
-          code: exchangeErr?.code,
-          fullError: exchangeErr
+          code: exchangeErr?.code
         })
         exchangeError = exchangeErr
-        
-        // If exchangeCodeForSession fails, Supabase might have sent tokens in hash
-        // OR the redirect URL configuration is wrong
-        // Let's redirect back to reset-password with the code - client will handle hash if present
-        if (type === 'recovery') {
-          console.log('[AUTH_CALLBACK_REDIRECTING_WITH_CODE]', 'Will let client handle code or hash')
-          const redirectPath = `/${routing.defaultLocale}/reset-password`
-          const redirectUrl = new URL(redirectPath, request.url)
-          redirectUrl.searchParams.set('code', code)
-          if (type) redirectUrl.searchParams.set('type', type)
-          return NextResponse.redirect(redirectUrl)
-        }
       }
     }
 
