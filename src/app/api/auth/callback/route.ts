@@ -73,10 +73,41 @@ export async function GET(request: NextRequest) {
     // First, try verifyOtp if we have a token (this is what Supabase sends in email links)
     if (token && type === 'recovery') {
       console.log('[AUTH_CALLBACK_VERIFYING_TOKEN]', 'Using verifyOtp for recovery token')
-      const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
+      // Try both token and token_hash - Supabase docs aren't clear which one works
+      let verifyData = null
+      let verifyErr = null
+      
+      // Try with token_hash first
+      const verify1 = await supabase.auth.verifyOtp({
         token_hash: token,
         type: 'recovery'
       })
+      
+      if (!verify1.error && verify1.data?.session) {
+        verifyData = verify1.data
+        console.log('[AUTH_CALLBACK_VERIFY_SUCCESS_TOKEN_HASH]')
+      } else {
+        // Try with token (direct)
+        console.log('[AUTH_CALLBACK_TRYING_TOKEN_DIRECT]')
+        const verify2 = await supabase.auth.verifyOtp({
+          token: token,
+          type: 'recovery'
+        })
+        
+        if (!verify2.error && verify2.data?.session) {
+          verifyData = verify2.data
+          verifyErr = null
+          console.log('[AUTH_CALLBACK_VERIFY_SUCCESS_TOKEN_DIRECT]')
+        } else {
+          verifyErr = verify1.error || verify2.error
+          console.warn('[AUTH_CALLBACK_VERIFY_FAILED_BOTH]', {
+            tokenHashError: verify1.error?.message,
+            tokenDirectError: verify2.error?.message
+          })
+        }
+      }
+      
+      if (verifyData?.session) {
       
       if (!verifyErr && verifyData?.session) {
         sessionData = verifyData
