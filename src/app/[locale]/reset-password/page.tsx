@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Link, useRouter } from "@/i18n/routing-config";
 import { useForm } from "react-hook-form";
@@ -34,6 +35,7 @@ import {
 
 export default function ResetPassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -65,7 +67,19 @@ export default function ResetPassword() {
     // Check for session and process any recovery tokens
     const checkSession = async () => {
       setIsValidatingSession(true);
-      // First, check if we have tokens in URL hash (Supabase might send them directly)
+      
+      // First, check if we have a code parameter (PKCE flow) - redirect to callback
+      const code = searchParams?.get('code');
+      if (code && typeof window !== 'undefined') {
+        console.log('[RESET_PASSWORD_CODE_DETECTED]', 'Redirecting to callback to exchange code');
+        // Redirect to callback route which will exchange code for session
+        const currentPath = window.location.pathname;
+        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}&next=${encodeURIComponent(currentPath)}`;
+        window.location.href = callbackUrl;
+        return; // Don't proceed with rest of validation
+      }
+      
+      // Check if we have tokens in URL hash (implicit flow)
       if (typeof window !== 'undefined' && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
