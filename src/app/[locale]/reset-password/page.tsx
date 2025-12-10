@@ -64,68 +64,11 @@ export default function ResetPassword() {
   useEffect(() => {
     const supabase = createClient();
     
-    // Check for session and process any recovery tokens
+    // Check for session and process any recovery codes/tokens
     const checkSession = async () => {
       setIsValidatingSession(true);
       
-      // Check if we have a code parameter - verify it via API route
-      const code = searchParams?.get('code');
-      const typeParam = searchParams?.get('type');
-      
-      if (code) {
-        console.log('[RESET_PASSWORD_CODE_DETECTED]', { code: code.substring(0, 10) + '...', type: typeParam });
-        
-        try {
-          // Verify the code via API route (server-side can use verifyOtp without PKCE issues)
-          const verifyResponse = await fetch('/api/auth/verify-reset-code', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ code }),
-            credentials: 'include',
-          });
-
-          const verifyResult = await verifyResponse.json();
-
-          console.log('[RESET_PASSWORD_VERIFY_API_RESPONSE]', {
-            success: verifyResult.success,
-            status: verifyResponse.status,
-          });
-
-          if (verifyResult.success && verifyResponse.ok) {
-            // Code verified, session should be established via cookies
-            // Wait a moment for cookies to be set
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Check if session now exists
-            const { data: { session: newSession } } = await supabase.auth.getSession();
-            if (newSession) {
-              setHasValidSession(true);
-              setIsValidatingSession(false);
-              console.log('[RESET_PASSWORD_SESSION_FROM_VERIFY_API]', 'Session established');
-              // Clean up URL
-              window.history.replaceState(null, '', window.location.pathname);
-              return;
-            }
-          } else {
-            console.error('[RESET_PASSWORD_VERIFY_API_FAILED]', verifyResult.message);
-            setIsValidatingSession(false);
-            toast({
-              variant: "destructive",
-              title: "Invalid reset link",
-              description: verifyResult.message || "Please request a new password reset link.",
-            });
-            setTimeout(() => router.push("/forgot-password"), 2000);
-            return;
-          }
-        } catch (error) {
-          console.error('[RESET_PASSWORD_VERIFY_API_EXCEPTION]', error);
-          setIsValidatingSession(false);
-        }
-      }
-      
-      // Check if we have tokens in URL hash (implicit flow)
+      // First, check if we have tokens in URL hash (implicit flow)
       if (typeof window !== 'undefined' && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
@@ -134,17 +77,17 @@ export default function ResetPassword() {
         const error = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
 
-        console.log('[RESET_PASSWORD_URL_HASH_CHECK]', {
+        console.log('[RESET_PASSWORD_HASH_CHECK]', {
           hasAccessToken: !!accessToken,
           hasRefreshToken: !!refreshToken,
           type,
           error,
-          errorDescription,
         });
 
         // Handle errors from Supabase in hash
         if (error) {
           console.error('[RESET_PASSWORD_HASH_ERROR]', { error, errorDescription });
+          setIsValidatingSession(false);
           toast({
             variant: "destructive",
             title: "Reset link expired",
@@ -156,7 +99,7 @@ export default function ResetPassword() {
 
         // Process recovery tokens from hash
         if (accessToken && refreshToken && type === 'recovery') {
-          console.log('[RESET_PASSWORD_PROCESSING_HASH_TOKENS]', 'Setting session from hash tokens');
+          console.log('[RESET_PASSWORD_SETTING_SESSION_FROM_HASH]');
           try {
             const { data: { session: newSession }, error: setSessionError } = await supabase.auth.setSession({
               access_token: accessToken,
@@ -166,58 +109,128 @@ export default function ResetPassword() {
             if (newSession && !setSessionError) {
               setHasValidSession(true);
               setIsValidatingSession(false);
-              console.log('[RESET_PASSWORD_SESSION_CREATED_FROM_HASH]', 'Session established');
+              console.log('[RESET_PASSWORD_SESSION_FROM_HASH_SUCCESS]');
               // Clean up URL hash
               window.history.replaceState(null, '', window.location.pathname + window.location.search);
               return;
             } else {
-              setIsValidatingSession(false);
               console.error('[RESET_PASSWORD_SET_SESSION_ERROR]', setSessionError);
+              setIsValidatingSession(false);
               toast({
                 variant: "destructive",
                 title: "Invalid reset link",
                 description: setSessionError?.message || "Please request a new password reset link.",
               });
+              setTimeout(() => router.push("/forgot-password"), 2000);
               return;
             }
           } catch (error) {
-            setIsValidatingSession(false);
             console.error('[RESET_PASSWORD_SET_SESSION_EXCEPTION]', error);
+            setIsValidatingSession(false);
             toast({
               variant: "destructive",
               title: "Error processing reset link",
               description: "Please request a new password reset link.",
             });
+            setTimeout(() => router.push("/forgot-password"), 2000);
             return;
           }
         }
       }
 
-      // Check for existing session (from callback or previous visit)
+      // Check if we have a code parameter - exchange it for session on client side
+      const code = searchParams?.get('code');
+      const typeParam = searchParams?.get('type');
+      
+      if (code) {
+        console.log('[RESET_PASSWORD_CODE_DETECTED]', { type: typeParam });
+        
+        try {
+          // Use client-side exchangeCodeForSession - this should work for password reset codes
+          // The browser client can handle this without PKCE issues in some cases
+          console.log('[RESET_PASSWORD_EXCHANGING_CODE]');
+          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) {
+            console.error('[RESET_PASSWORD_EXCHANGE_ERROR]', exchangeError);
+            
+            // If exchangeCodeForSession fails (PKCE issue), try verifyOtp as fallback
+            console.log('[RESET_PASSWORD_TRYING_VERIFY_OTP]');
+            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+              token: code,
+              type: 'recovery',
+            });
+
+            if (verifyError || !verifyData?.session) {
+              console.error('[RESET_PASSWORD_VERIFY_OTP_ERROR]', verifyError);
+              setIsValidatingSession(false);
+              toast({
+                variant: "destructive",
+                title: "Invalid reset link",
+                description: exchangeError?.message || verifyError?.message || "Please request a new password reset link.",
+              });
+              setTimeout(() => router.push("/forgot-password"), 2000);
+              return;
+            }
+
+            // verifyOtp succeeded
+            if (verifyData.session) {
+              setHasValidSession(true);
+              setIsValidatingSession(false);
+              console.log('[RESET_PASSWORD_SESSION_FROM_VERIFY_OTP]');
+              window.history.replaceState(null, '', window.location.pathname);
+              return;
+            }
+          } else if (exchangeData?.session) {
+            // exchangeCodeForSession succeeded
+            setHasValidSession(true);
+            setIsValidatingSession(false);
+            console.log('[RESET_PASSWORD_SESSION_FROM_EXCHANGE]');
+            window.history.replaceState(null, '', window.location.pathname);
+            return;
+          }
+        } catch (error) {
+          console.error('[RESET_PASSWORD_CODE_PROCESSING_EXCEPTION]', error);
+          setIsValidatingSession(false);
+          toast({
+            variant: "destructive",
+            title: "Error processing reset link",
+            description: "Please request a new password reset link.",
+          });
+          setTimeout(() => router.push("/forgot-password"), 2000);
+          return;
+        }
+      }
+
+      // Check for existing session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       console.log('[RESET_PASSWORD_SESSION_CHECK]', {
         hasSession: !!session,
         error: sessionError?.message,
-        href: typeof window !== 'undefined' ? window.location.href : '',
       });
 
       if (session) {
-        // Session exists, we can proceed
         setHasValidSession(true);
         setIsValidatingSession(false);
-        console.log('[RESET_PASSWORD_VALID_SESSION]', 'Ready for password reset');
+        console.log('[RESET_PASSWORD_EXISTING_SESSION]');
         return;
       }
 
-      // No session and no tokens - might still be loading or invalid link
+      // No session found
       setIsValidatingSession(false);
-      console.warn('[RESET_PASSWORD_NO_SESSION_OR_TOKENS]', 'No session or tokens found');
+      console.warn('[RESET_PASSWORD_NO_SESSION]', 'No valid session found');
+      toast({
+        variant: "destructive",
+        title: "Reset link expired",
+        description: "Please request a new password reset link.",
+      });
+      setTimeout(() => router.push("/forgot-password"), 2000);
     };
 
     checkSession();
 
-    // Listen for auth state changes (handles async token processing)
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AUTH_STATE_CHANGE]', { event, hasSession: !!session });
       
@@ -225,15 +238,7 @@ export default function ResetPassword() {
         if (session) {
           setHasValidSession(true);
           setIsValidatingSession(false);
-          console.log('[RESET_PASSWORD_SESSION_ESTABLISHED_VIA_EVENT]', 'Ready for password reset');
-        }
-      }
-      
-      if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        // Session lost - might happen if token expired
-        if (!session) {
-          setHasValidSession(false);
-          console.warn('[RESET_PASSWORD_SESSION_LOST]', 'Session no longer valid');
+          console.log('[RESET_PASSWORD_SESSION_FROM_EVENT]');
         }
       }
     });
@@ -241,7 +246,7 @@ export default function ResetPassword() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, toast]);
+  }, [router, searchParams, toast]);
 
   // Form submission  
   const onSubmit = async (data: ResetPasswordInput) => {
