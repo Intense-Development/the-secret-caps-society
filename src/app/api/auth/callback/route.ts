@@ -5,9 +5,10 @@ import { routing } from '@/i18n/routing-config'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') || `/${routing.defaultLocale}`
+  const next = requestUrl.searchParams.get('next') || `/${routing.defaultLocale}/reset-password`
   const error = requestUrl.searchParams.get('error')
   const errorDescription = requestUrl.searchParams.get('error_description')
+  const type = requestUrl.searchParams.get('type') // Check if this is a password recovery
 
   console.log('[AUTH_CALLBACK]', {
     hasCode: !!code,
@@ -19,9 +20,13 @@ export async function GET(request: NextRequest) {
 
   // If Supabase sent an error, redirect with error in hash
   if (error) {
-    console.error('[AUTH_CALLBACK_SUPABASE_ERROR]', { error, errorDescription })
-    const redirectUrl = new URL(next, request.url)
-    redirectUrl.hash = `error=${error}&error_description=${errorDescription || ''}`
+    console.error('[AUTH_CALLBACK_SUPABASE_ERROR]', { error, errorDescription, type })
+    // For password recovery errors, redirect to reset-password page with error
+    const errorRedirectPath = type === 'recovery' 
+      ? `/${routing.defaultLocale}/reset-password`
+      : next
+    const redirectUrl = new URL(errorRedirectPath, request.url)
+    redirectUrl.hash = `error=${error}&error_description=${encodeURIComponent(errorDescription || '')}`
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -56,8 +61,14 @@ export async function GET(request: NextRequest) {
     })
 
     if (!exchangeError && data?.session) {
+      // For password recovery, always redirect to reset-password page
+      // For other auth flows, use the 'next' parameter
+      const redirectPath = type === 'recovery' 
+        ? `/${routing.defaultLocale}/reset-password`
+        : next
+      
       // Create response with redirect
-      const response = NextResponse.redirect(new URL(next, request.url))
+      const response = NextResponse.redirect(new URL(redirectPath, request.url))
       
       // Set auth cookies
       cookiesToSet.forEach(({ name, value, options }) => {
@@ -65,8 +76,9 @@ export async function GET(request: NextRequest) {
       })
 
       console.log('[AUTH_CALLBACK_SUCCESS]', {
-        redirectTo: next,
-        userId: data.user?.id
+        redirectTo: redirectPath,
+        userId: data.user?.id,
+        type: type || 'unknown'
       })
 
       return response
