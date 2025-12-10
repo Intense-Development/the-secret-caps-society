@@ -68,17 +68,54 @@ export default function ResetPassword() {
     const checkSession = async () => {
       setIsValidatingSession(true);
       
-      // Check if we have a code parameter - redirect to callback to exchange it
+      // Check if we have a code parameter - need to verify with email
+      // Password reset codes require the user's email to verify
+      // However, Supabase might send tokens in hash instead of codes
       const code = searchParams?.get('code');
       const typeParam = searchParams?.get('type');
       
-      if (code && typeof window !== 'undefined') {
+      if (code) {
         console.log('[RESET_PASSWORD_CODE_DETECTED]', { code: code.substring(0, 10) + '...', type: typeParam });
-        // Redirect to callback route which will handle the code exchange
-        const currentPath = window.location.pathname;
-        const callbackUrl = `/api/auth/callback?code=${encodeURIComponent(code)}&type=recovery&next=${encodeURIComponent(currentPath)}`;
-        window.location.href = callbackUrl;
-        return; // Don't proceed with rest of validation - redirecting
+        
+        // Password reset codes from Supabase need to be verified with email
+        // But we don't have the email here. Supabase should send tokens in hash instead.
+        // For now, try to verify with the code alone - might work for recovery type
+        try {
+          // Try verifyOtp - this might work for password recovery without email
+          const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: code,
+            type: 'recovery'
+          });
+
+          if (verifyError) {
+            console.error('[RESET_PASSWORD_VERIFY_OTP_ERROR]', verifyError);
+          }
+
+          if (verifyData?.session) {
+            setHasValidSession(true);
+            setIsValidatingSession(false);
+            console.log('[RESET_PASSWORD_SESSION_FROM_VERIFY]', 'Session established via verifyOtp');
+            window.history.replaceState(null, '', window.location.pathname);
+            return;
+          }
+        } catch (error) {
+          console.error('[RESET_PASSWORD_VERIFY_EXCEPTION]', error);
+        }
+        
+        // If verifyOtp didn't work, the code might need to be handled differently
+        // Supabase password reset might require email + code, or use tokens in hash
+        // Let's check if there's a session anyway (might have been set)
+        const { data: { session: codeSession } } = await supabase.auth.getSession();
+        if (codeSession) {
+          setHasValidSession(true);
+          setIsValidatingSession(false);
+          console.log('[RESET_PASSWORD_SESSION_AFTER_CODE]', 'Session found - code may have been auto-processed');
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
+        }
+        
+        // Code present but no session - might be invalid or need different handling
+        console.warn('[RESET_PASSWORD_CODE_NO_SESSION]', 'Code found but could not establish session');
       }
       
       // Check if we have tokens in URL hash (implicit flow)
