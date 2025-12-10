@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (code) {
+  if (code || token) {
     const cookiesToSet: Array<{
       name: string
       value: string
@@ -108,14 +108,12 @@ export async function GET(request: NextRequest) {
       }
       
       if (verifyData?.session) {
-      
-      if (!verifyErr && verifyData?.session) {
         sessionData = verifyData
         console.log('[AUTH_CALLBACK_VERIFY_SUCCESS]', {
           hasSession: !!sessionData.session,
           userId: sessionData.user?.id
         })
-      } else {
+      } else if (verifyErr) {
         console.warn('[AUTH_CALLBACK_VERIFY_FAILED]', {
           error: verifyErr?.message,
           status: verifyErr?.status,
